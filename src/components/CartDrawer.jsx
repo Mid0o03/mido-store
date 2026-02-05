@@ -42,18 +42,24 @@ const CartDrawer = () => {
                     amount: cartTotal
                 }),
             })
-                .then(res => res.json())
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({}));
+                        const errorMessage = errorData.message || `Erreur Serveur (${res.status})`;
+                        throw new Error(errorMessage);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (data.clientSecret) {
                         setClientSecret(data.clientSecret);
                     } else {
-                        console.error('No clientSecret returned', data);
-                        setStripeError("Erreur lors de l'initialisation du paiement.");
+                        throw new Error("Pas de clientSecret retourné par le serveur.");
                     }
                 })
                 .catch(err => {
-                    console.error('Error fetching payment intent:', err);
-                    setStripeError("Erreur de connexion au serveur de paiement.");
+                    console.error('Transaction Error:', err);
+                    setStripeError(err.message);
                 });
         }
     }, [paymentStep, cartTotal, cartItems]);
