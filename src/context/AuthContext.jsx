@@ -82,8 +82,15 @@ export const AuthProvider = ({ children }) => {
     const loginClient = login;
     const clientUser = session?.user || null; // Now clientUser IS the session user
 
+    const resetPassword = async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/reset-password',
+        });
+        if (error) throw error;
+    };
+
     return (
-        <AuthContext.Provider value={{ session, isAdmin, login, logout, clientUser, loginClient, signUpClient, loading }}>
+        <AuthContext.Provider value={{ session, isAdmin, login, logout, clientUser, loginClient, signUpClient, resetPassword, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

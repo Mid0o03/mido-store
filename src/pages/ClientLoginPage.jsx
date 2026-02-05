@@ -6,11 +6,12 @@ import { ArrowRight } from 'lucide-react';
 import './PageStyles.css';
 
 const ClientLoginPage = () => {
-    const { loginClient, signUpClient } = useAuth();
+    const { loginClient, signUpClient, resetPassword } = useAuth();
     const { t } = useLanguage();
     const navigate = useNavigate();
 
     const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Signup
+    const [isResetMode, setIsResetMode] = useState(false); // Toggle Password Reset Mode
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,12 @@ const ClientLoginPage = () => {
         setSuccessMsg(null);
 
         try {
+            if (isResetMode) {
+                await resetPassword(email);
+                setSuccessMsg("Email de réinitialisation envoyé ! Vérifiez votre boîte mail.");
+                return;
+            }
+
             if (isLogin) {
                 await loginClient(email, password);
                 navigate('/client');
@@ -47,125 +54,205 @@ const ClientLoginPage = () => {
 
             <div className="glass-panel login-form" style={{ width: '100%', maxWidth: '420px', padding: '0', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
 
-                {/* Header Tabs */}
-                <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <button
-                        onClick={() => { setIsLogin(true); setError(null); }}
-                        style={{
-                            flex: 1,
-                            padding: '1.5rem',
-                            background: isLogin ? 'rgba(255,255,255,0.03)' : 'transparent',
-                            color: isLogin ? 'white' : 'var(--text-secondary)',
-                            fontWeight: isLogin ? '600' : '400',
-                            borderBottom: isLogin ? '2px solid var(--accent-color)' : '2px solid transparent',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        CONNEXION
-                    </button>
-                    <button
-                        onClick={() => { setIsLogin(false); setError(null); }}
-                        style={{
-                            flex: 1,
-                            padding: '1.5rem',
-                            background: !isLogin ? 'rgba(255,255,255,0.03)' : 'transparent',
-                            color: !isLogin ? 'white' : 'var(--text-secondary)',
-                            fontWeight: !isLogin ? '600' : '400',
-                            borderBottom: !isLogin ? '2px solid var(--accent-color)' : '2px solid transparent',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        INSCRIPTION
-                    </button>
-                </div>
-
-                <div style={{ padding: '3rem 2.5rem' }}>
-                    <h2 className="mb-2 text-center" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
-                        {isLogin ? 'Bon retour parmi nous' : 'Rejoignez Mido'}
-                    </h2>
-                    <p className="text-center mb-8" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        {isLogin ? 'Accédez à votre espace et vos téléchargements' : 'Créez un compte pour gérer vos achats'}
-                    </p>
-
-                    <form onSubmit={handleSubmit}>
-                        {error && (
-                            <div className="mb-6 text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded text-center">
-                                {error}
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="mb-6 text-green-400 text-sm bg-green-500/10 border border-green-500/20 p-3 rounded text-center">
-                                {successMsg}
-                            </div>
-                        )}
-
-                        <div className="form-group mb-5">
-                            <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="exemple@email.com"
-                                className="admin-input"
+                {!isResetMode ? (
+                    <>
+                        {/* Header Tabs */}
+                        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <button
+                                onClick={() => { setIsLogin(true); setError(null); }}
                                 style={{
-                                    background: 'rgba(0,0,0,0.2)',
-                                    border: '1px solid var(--accent-color)',
-                                    padding: '1.2rem',
-                                    fontSize: '1.1rem',
-                                    height: 'auto',
-                                    outline: 'none',
-                                    boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                    flex: 1,
+                                    padding: '1.5rem',
+                                    background: isLogin ? 'rgba(255,255,255,0.03)' : 'transparent',
+                                    color: isLogin ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: isLogin ? '600' : '400',
+                                    borderBottom: isLogin ? '2px solid var(--accent-color)' : '2px solid transparent',
+                                    transition: 'all 0.3s ease'
                                 }}
-                                required
-                            />
-                        </div>
-                        <div className="form-group mb-8">
-                            <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>MOT DE PASSE</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="admin-input"
+                            >
+                                CONNEXION
+                            </button>
+                            <button
+                                onClick={() => { setIsLogin(false); setError(null); }}
                                 style={{
-                                    background: 'rgba(0,0,0,0.2)',
-                                    border: '1px solid var(--accent-color)',
-                                    padding: '1.2rem',
-                                    fontSize: '1.1rem',
-                                    height: 'auto',
-                                    outline: 'none',
-                                    boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                    flex: 1,
+                                    padding: '1.5rem',
+                                    background: !isLogin ? 'rgba(255,255,255,0.03)' : 'transparent',
+                                    color: !isLogin ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: !isLogin ? '600' : '400',
+                                    borderBottom: !isLogin ? '2px solid var(--accent-color)' : '2px solid transparent',
+                                    transition: 'all 0.3s ease'
                                 }}
-                                required
-                            />
+                            >
+                                INSCRIPTION
+                            </button>
                         </div>
-                        <button
-                            type="submit"
-                            className="cta-primary w-full"
-                            disabled={isLoading}
-                            style={{
-                                justifyContent: 'center',
-                                padding: '1rem',
-                                fontSize: '1rem',
-                                letterSpacing: '0.05em',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            {isLoading ? 'TRAITEMENT...' : (isLogin ? 'SE CONNECTER' : 'CRÉER UN COMPTE')}
-                            {!isLoading && <ArrowRight size={20} />}
-                        </button>
 
-                        {isLogin && (
+                        <div style={{ padding: '3rem 2.5rem' }}>
+                            <h2 className="mb-2 text-center" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
+                                {isLogin ? 'Bon retour parmi nous' : 'Rejoignez Mido'}
+                            </h2>
+                            <p className="text-center mb-8" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                {isLogin ? 'Accédez à votre espace et vos téléchargements' : 'Créez un compte pour gérer vos achats'}
+                            </p>
+
+                            <form onSubmit={handleSubmit}>
+                                {error && (
+                                    <div className="mb-6 text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded text-center">
+                                        {error}
+                                    </div>
+                                )}
+                                {successMsg && (
+                                    <div className="mb-6 text-green-400 text-sm bg-green-500/10 border border-green-500/20 p-3 rounded text-center">
+                                        {successMsg}
+                                    </div>
+                                )}
+
+                                <div className="form-group mb-5">
+                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="exemple@email.com"
+                                        className="admin-input"
+                                        style={{
+                                            background: 'rgba(0,0,0,0.2)',
+                                            border: '1px solid var(--accent-color)',
+                                            padding: '1.2rem',
+                                            fontSize: '1.1rem',
+                                            height: 'auto',
+                                            outline: 'none',
+                                            boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                        }}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group mb-8">
+                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>MOT DE PASSE</label>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="admin-input"
+                                        style={{
+                                            background: 'rgba(0,0,0,0.2)',
+                                            border: '1px solid var(--accent-color)',
+                                            padding: '1.2rem',
+                                            fontSize: '1.1rem',
+                                            height: 'auto',
+                                            outline: 'none',
+                                            boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                        }}
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="cta-primary w-full"
+                                    disabled={isLoading}
+                                    style={{
+                                        justifyContent: 'center',
+                                        padding: '1rem',
+                                        fontSize: '1rem',
+                                        letterSpacing: '0.05em',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    {isLoading ? 'TRAITEMENT...' : (isLogin ? 'SE CONNECTER' : 'CRÉER UN COMPTE')}
+                                    {!isLoading && <ArrowRight size={20} />}
+                                </button>
+
+                                {isLogin && (
+                                    <div className="text-center mt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsResetMode(true); setError(null); setSuccessMsg(null); }}
+                                            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer' }}
+                                            onMouseOver={e => e.target.style.color = 'white'}
+                                            onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}
+                                        >
+                                            Mot de passe oublié ?
+                                        </button>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
+                    </>
+                ) : (
+                    // RESET PASSWORD VIEW
+                    <div style={{ padding: '3rem 2.5rem' }}>
+                        <h2 className="mb-2 text-center" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
+                            Réinitialisation
+                        </h2>
+                        <p className="text-center mb-8" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                            Entrez votre email pour recevoir un lien de réinitialisation.
+                        </p>
+
+                        <form onSubmit={handleSubmit}>
+                            {error && (
+                                <div className="mb-6 text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded text-center">
+                                    {error}
+                                </div>
+                            )}
+                            {successMsg && (
+                                <div className="mb-6 text-green-400 text-sm bg-green-500/10 border border-green-500/20 p-3 rounded text-center">
+                                    {successMsg}
+                                </div>
+                            )}
+
+                            <div className="form-group mb-8">
+                                <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="exemple@email.com"
+                                    className="admin-input"
+                                    style={{
+                                        background: 'rgba(0,0,0,0.2)',
+                                        border: '1px solid var(--accent-color)',
+                                        padding: '1.2rem',
+                                        fontSize: '1.1rem',
+                                        height: 'auto',
+                                        outline: 'none',
+                                        boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                    }}
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="cta-primary w-full"
+                                disabled={isLoading}
+                                style={{
+                                    justifyContent: 'center',
+                                    padding: '1rem',
+                                    fontSize: '1rem',
+                                    letterSpacing: '0.05em',
+                                }}
+                            >
+                                {isLoading ? 'ENVOI...' : 'ENVOYER LE LIEN'}
+                            </button>
+
                             <div className="text-center mt-6">
-                                <a href="#" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textDecoration: 'none' }} onMouseOver={e => e.target.style.color = 'white'} onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}>
-                                    Mot de passe oublié ?
-                                </a>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsResetMode(false); setError(null); setSuccessMsg(null); }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer' }}
+                                    onMouseOver={e => e.target.style.color = 'white'}
+                                    onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}
+                                >
+                                    ← Retour à la connexion
+                                </button>
                             </div>
-                        )}
-                    </form>
-                </div>
+                        </form>
+                    </div>
+                )}
             </div>
         </div>
     );
