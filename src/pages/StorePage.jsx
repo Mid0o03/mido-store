@@ -348,7 +348,9 @@ const StorePage = () => {
                         </div>
                     </div>
                 </div>
-            )
-            };
+            )}
+        </div>
+    );
+};
 
-            export default StorePage;
+export default StorePage;
