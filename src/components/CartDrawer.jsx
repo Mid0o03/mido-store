@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -95,17 +96,31 @@ const CartDrawer = () => {
         }
     };
 
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = async () => {
         setPaymentStep('success');
 
-        // Save purchased items to mock DB (localStorage)
-        const currentPurchases = JSON.parse(localStorage.getItem('purchasedAssets') || '[]');
-        const newPurchases = cartItems.map(item => ({
-            ...item,
-            purchaseDate: new Date().toLocaleDateString(),
-            version: 'v1.0.0'
-        }));
-        localStorage.setItem('purchasedAssets', JSON.stringify([...newPurchases, ...currentPurchases]));
+        // Save to Supabase
+        if (clientUser) {
+            const purchases = cartItems.map(item => ({
+                user_id: clientUser.id,
+                template_id: item.id,
+                template_title: item.title,
+                template_image: item.image_url || item.image,
+                price_paid: parseFloat(item.price.replace('€', '')),
+                template_version: 'v1.0.0'
+            }));
+
+            const { error } = await supabase.from('purchases').insert(purchases);
+
+            if (error) {
+                console.error("Error saving purchase:", error);
+                alert(`ERREUR SUPABASE: ${error.message} (Code: ${error.code})`);
+            } else {
+                alert("DEBUG: Achat sauvegardé dans la base de données avec succès !");
+            }
+        } else {
+            alert("ERREUR: Utilisateur non connecté au moment de la sauvegarde.");
+        }
 
         setTimeout(() => {
             clearCart();
