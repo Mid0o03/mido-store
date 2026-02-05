@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import './PageStyles.css';
 
 const ClientLoginPage = () => {
@@ -138,9 +139,18 @@ const ClientLoginPage = () => {
                             type="submit"
                             className="cta-primary w-full"
                             disabled={isLoading}
-                            style={{ justifyContent: 'center', padding: '1rem', fontSize: '1rem', letterSpacing: '0.05em' }}
+                            style={{
+                                justifyContent: 'center',
+                                padding: '1rem',
+                                fontSize: '1rem',
+                                letterSpacing: '0.05em',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
                         >
                             {isLoading ? 'TRAITEMENT...' : (isLogin ? 'SE CONNECTER' : 'CRÉER UN COMPTE')}
+                            {!isLoading && <ArrowRight size={20} />}
                         </button>
 
                         {isLogin && (
