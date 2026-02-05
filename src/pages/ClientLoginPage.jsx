@@ -99,26 +99,38 @@ const ClientLoginPage = () => {
                         )}
 
                         <div className="form-group mb-5">
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
+                            <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="exemple@email.com"
                                 className="admin-input"
-                                style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.1)' }}
+                                style={{
+                                    background: 'rgba(0,0,0,0.2)',
+                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    padding: '1.2rem',
+                                    fontSize: '1.1rem',
+                                    height: 'auto'
+                                }}
                                 required
                             />
                         </div>
                         <div className="form-group mb-8">
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>MOT DE PASSE</label>
+                            <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>MOT DE PASSE</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="admin-input"
-                                style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.1)' }}
+                                style={{
+                                    background: 'rgba(0,0,0,0.2)',
+                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    padding: '1.2rem',
+                                    fontSize: '1.1rem',
+                                    height: 'auto'
+                                }}
                                 required
                             />
                         </div>
