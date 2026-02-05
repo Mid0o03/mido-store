@@ -23,11 +23,9 @@ const ClientDashboard = () => {
     useEffect(() => {
         const fetchPurchases = async () => {
             if (!clientUser) {
-                console.log("No clientUser found");
                 return;
             }
 
-            console.log("Fetching purchases for User ID:", clientUser.id);
             setLoading(true);
             const { data, error } = await supabase
                 .from('purchases')
@@ -39,11 +37,9 @@ const ClientDashboard = () => {
                 console.error("Error fetching purchases:", error);
                 alert(`Error Fetching: ${error.message}`);
             } else {
-                console.log("Purchases found:", data);
                 if (data.length === 0) {
                     // Double check if RLS might be hiding them? 
                     // No, if RLS hides them, data is just empty [].
-                    console.warn("Data is empty. Check RLS or INSERT.");
                 }
 
                 // Map DB columns to UI expected format if needed (or just use direct)

@@ -114,12 +114,7 @@ const CartDrawer = () => {
 
             if (error) {
                 console.error("Error saving purchase:", error);
-                alert(`ERREUR SUPABASE: ${error.message} (Code: ${error.code})`);
-            } else {
-                alert("DEBUG: Achat sauvegardé dans la base de données avec succès !");
             }
-        } else {
-            alert("ERREUR: Utilisateur non connecté au moment de la sauvegarde.");
         }
 
         setTimeout(() => {
