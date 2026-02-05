@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../supabase';
 import './PageStyles.css';
 
 const CATEGORIES = {
@@ -23,6 +24,29 @@ const AdminPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Analytics State
+    const [stats, setStats] = useState(null);
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    // Fetch Stats on mount (if admin)
+    useEffect(() => {
+        if (isAdmin && session) {
+            fetchStats();
+        }
+    }, [isAdmin, session]);
+
+    const fetchStats = async () => {
+        try {
+            const { data, error } = await supabase.rpc('get_admin_stats');
+            if (error) throw error;
+            setStats(data);
+        } catch (err) {
+            console.error("Error fetching stats:", err);
+        } finally {
+            setStatsLoading(false);
+        }
+    };
 
     // Edit Mode State
     const [editMode, setEditMode] = useState(false);
@@ -259,6 +283,95 @@ const AdminPage = () => {
                 <h1 className="page-title mb-0">{t('admin.dashboard')}</h1>
                 <button onClick={logout} className="cta-secondary">Logout</button>
             </div>
+
+            {/* ANALYTICS SECTION */}
+            {stats && (
+                <div className="glass-panel p-6 mb-8 border border-white/10" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 100%)' }}>
+                    <h3 className="text-xl mb-6 text-accent flex items-center gap-2">
+                        📊 Performance
+                    </h3>
+
+                    <div className="stats-grid">
+                        {/* CARD 1: REVENUE */}
+                        <div className="stat-card">
+                            <span className="stat-label">Revenu Total</span>
+                            <span className="stat-value">{stats.total_revenue}€</span>
+                            <span className="stat-trend text-green-400">Lifetime</span>
+                        </div>
+
+                        {/* CARD 2: SALES */}
+                        <div className="stat-card">
+                            <span className="stat-label">Ventes Totales</span>
+                            <span className="stat-value">{stats.total_sales}</span>
+                            <span className="stat-trend text-blue-400">Transactions</span>
+                        </div>
+
+                        {/* CARD 3: AVG ORDER */}
+                        <div className="stat-card">
+                            <span className="stat-label">Panier Moyen</span>
+                            <span className="stat-value">
+                                {stats.total_sales > 0 ? (stats.total_revenue / stats.total_sales).toFixed(2) : 0}€
+                            </span>
+                            <span className="stat-trend text-purple-400">Avg / Order</span>
+                        </div>
+                    </div>
+
+                    {/* CHART & RECENT SALES */}
+                    <div className="analytics-details mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                        {/* CSS CHART */}
+                        <div className="chart-container">
+                            <h4 className="text-sm text-secondary mb-4 uppercase tracking-wider">Ventes 30 derniers jours</h4>
+                            <div className="simple-bar-chart">
+                                {stats.sales_by_date && stats.sales_by_date.length > 0 ? (
+                                    stats.sales_by_date.map((day, i) => (
+                                        <div key={i} className="chart-bar-col" title={`${day.date}: ${day.count} ventes (${day.total}€)`}>
+                                            <div
+                                                className="chart-bar"
+                                                style={{ height: `${Math.min(day.count * 20, 100)}%` }} // Simple scaling
+                                            ></div>
+                                            <span className="chart-date">{day.date.slice(5)}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-secondary text-sm italic">Pas de données récentes</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* RECENT TRANSACTIONS TABLE */}
+                        <div className="transactions-list">
+                            <h4 className="text-sm text-secondary mb-4 uppercase tracking-wider">Dernières Commandes</h4>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead>
+                                        <tr className="border-b border-white/10 text-secondary">
+                                            <th className="pb-2">Produit</th>
+                                            <th className="pb-2 text-right">Prix</th>
+                                            <th className="pb-2 text-right">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stats.recent_sales && stats.recent_sales.length > 0 ? (
+                                            stats.recent_sales.map((sale) => (
+                                                <tr key={sale.id} className="border-b border-white/5 hover:bg-white/5">
+                                                    <td className="py-2 text-white/80 truncate max-w-[150px]">{sale.template_title}</td>
+                                                    <td className="py-2 text-right font-mono text-accent">{sale.price_paid}€</td>
+                                                    <td className="py-2 text-right text-xs text-secondary">
+                                                        {new Date(sale.created_at).toLocaleDateString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan="3" className="py-4 text-center text-secondary">Aucune vente</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="glass-panel admin-panel">
                 <div className="flex justify-between items-center mb-4">
@@ -603,6 +716,52 @@ const AdminPage = () => {
                     cursor: pointer;
                 }
                 .block { display: block; }
+
+                /* ANALYTICS STYLES */
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1.5rem;
+                }
+                .stat-card {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .stat-label { font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+                .stat-value { font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.2rem; }
+                .stat-trend { font-size: 0.8rem; font-weight: 500; }
+
+                /* Simple Bar Chart */
+                .simple-bar-chart {
+                    height: 150px;
+                    display: flex;
+                    align-items: flex-end;
+                    gap: 8px;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    padding-bottom: 5px;
+                }
+                .chart-bar-col {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    height: 100%;
+                    justify-content: flex-end;
+                }
+                .chart-bar {
+                    width: 100%;
+                    background: var(--accent-color);
+                    border-radius: 4px 4px 0 0;
+                    opacity: 0.7;
+                    transition: all 0.2s;
+                    min-height: 4px;
+                }
+                .chart-bar:hover { opacity: 1; transform: scaleY(1.05); }
+                .chart-date { font-size: 0.65rem; color: var(--text-secondary); margin-top: 5px; }
             `}</style>
         </div>
     );
