@@ -1,0 +1,51 @@
+.stack-section {
+    padding: 4rem 0;
+    background: #000;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.marquee-container {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
+.marquee-content {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+}
+
+.tech-item {
+    display: inline-block;
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.2);
+    margin-right: 2rem;
+    transition: color 0.3s;
+    cursor: default;
+    font-family: 'Inter', sans-serif;
+}
+
+.tech-item:hover {
+    color: var(--accent-color);
+}
+
+.separator {
+    color: var(--accent-color);
+    opacity: 0.5;
+    font-size: 3rem;
+    margin-left: 2rem;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}

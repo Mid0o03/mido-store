@@ -1,0 +1,140 @@
+/* Workflow Section */
+.workflow-section {
+    padding: 10rem 0;
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.workflow-header {
+    text-align: center;
+    margin-bottom: 6rem;
+}
+
+.workflow-timeline {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+/* The Central Line */
+.timeline-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.line-beam {
+    width: 100%;
+    height: 0%;
+    /* Animates to 100% */
+    background: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Steps Layout */
+.workflow-step {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6rem;
+    position: relative;
+    z-index: 2;
+}
+
+.workflow-step.left {
+    flex-direction: row-reverse;
+}
+
+.workflow-step.right {
+    flex-direction: row;
+}
+
+.step-content {
+    width: 45%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2.5rem;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.step-content:hover {
+    background: rgba(57, 255, 20, 0.02);
+    border-color: rgba(57, 255, 20, 0.3);
+}
+
+.workflow-step.left .step-content {
+    margin-right: auto;
+    text-align: right;
+}
+
+.workflow-step.right .step-content {
+    margin-left: auto;
+    text-align: left;
+}
+
+.step-connector {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    background: #000;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    z-index: 5;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+}
+
+.step-icon {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+}
+
+.step-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.step-desc {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .timeline-line {
+        left: 20px;
+    }
+
+    .workflow-step {
+        flex-direction: row !important;
+        justify-content: flex-start;
+        padding-left: 50px;
+    }
+
+    .step-content {
+        width: 100%;
+        text-align: left !important;
+    }
+
+    .step-connector {
+        left: 20px;
+    }
+}

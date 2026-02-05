@@ -1,0 +1,286 @@
+import React, { useState, useMemo } from 'react';
+import { useData } from '../context/DataContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useCart } from '../context/CartContext';
+import { Plus, Eye, ShoppingBag, X } from 'lucide-react';
+import './PageStyles.css';
+
+const StorePage = () => {
+    const { templates, incrementViews } = useData();
+    const { t } = useLanguage();
+    const { addToCart } = useCart(); // Use Cart Context
+    const [activeCategory, setActiveCategory] = useState("All");
+    const [activeSubCategory, setActiveSubCategory] = useState("All");
+    const [addedItems, setAddedItems] = useState({});
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('newest'); // 'popular', 'newest', 'price-asc', 'price-desc'
+    const [isSortOpen, setIsSortOpen] = useState(false);
+
+    const handleAddToCart = (e, item) => {
+        e.stopPropagation();
+        addToCart(item); // Add to real cart
+        setAddedItems(prev => ({ ...prev, [item.id]: true }));
+        setTimeout(() => {
+            setAddedItems(prev => ({ ...prev, [item.id]: false }));
+        }, 2000);
+    };
+
+    const handleViewDetails = (item) => {
+        setSelectedItem(item);
+        incrementViews(item.id);
+    };
+
+    const categories = useMemo(() => {
+        const cats = {
+            "All": [],
+            "Web": ["All", "Landing Page", "SaaS", "Dashboard", "Portfolio", "E-commerce", "Blog"],
+            "App": ["All", "Mobile UI", "PWA", "Desktop App", "AI Interfaces"]
+        };
+        return cats;
+    }, []);
+
+    const parsePrice = (priceStr) => {
+        if (!priceStr) return 0;
+        if (priceStr === 'Free' || priceStr === '$0') return 0;
+        return parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
+    };
+
+    const filteredTemplates = useMemo(() => {
+        // 1. Filter
+        let result = templates.filter(t => {
+            if (!t) return false;
+            // Only show published items in store
+            if (t.status && t.status !== 'published') return false;
+
+            const catMatch = activeCategory === "All" || t.category === activeCategory;
+            const subMatch = activeSubCategory === "All" || (t.sub_category || t.subCategory) === activeSubCategory;
+
+            const title = t.title || '';
+            const tech = t.tech ? (Array.isArray(t.tech) ? t.tech.join(' ') : t.tech) : '';
+            const searchMatch = !searchTerm ||
+                title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                tech.toLowerCase().includes(searchTerm.toLowerCase());
+
+            return catMatch && subMatch && searchMatch;
+        });
+
+        // 2. Sort
+        return result.sort((a, b) => {
+            switch (sortBy) {
+                case 'popular':
+                    return (b.views || 0) - (a.views || 0);
+                case 'price-asc':
+                    return parsePrice(a.price) - parsePrice(b.price);
+                case 'price-desc':
+                    return parsePrice(b.price) - parsePrice(a.price);
+                case 'newest':
+                default:
+                    return b.id - a.id; // Assuming higher ID = newer
+            }
+        });
+    }, [templates, activeCategory, activeSubCategory, searchTerm, sortBy]);
+
+    return (
+        <div className="page-container container">
+            <h1 className="page-title">{t('store.title_prefix')} <span className="text-accent">{t('store.title_highlight')}</span></h1>
+            <p className="page-subtitle" style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
+                {t('store.subtitle')}
+            </p>
+
+            <div className="filters-container glass-panel">
+                <div className="store-filter-bar">
+                    {/* Search Bar */}
+                    <div className="search-container">
+                        <input
+                            type="text"
+                            placeholder={t('store.search_placeholder')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-input"
+                        />
+                        <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+
+                    {/* Sort Dropdown - Custom React Implementation */}
+                    <div className="sort-container" style={{ position: 'relative' }}>
+                        <span className="sort-label hidden md:block">{t('store.sort.label')}:</span>
+
+                        <div
+                            className="custom-select-trigger"
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                        >
+                            {t(`store.sort.${sortBy.replace('-', '_')}`) || sortBy}
+                            <span className={`chevron ${isSortOpen ? 'open' : ''}`}>▼</span>
+                        </div>
+
+                        {isSortOpen && (
+                            <div className="custom-options glass-panel">
+                                {['newest', 'popular', 'price-asc', 'price-desc'].map(opt => (
+                                    <div
+                                        key={opt}
+                                        className={`custom-option ${sortBy === opt ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            setSortBy(opt);
+                                            setIsSortOpen(false);
+                                        }}
+                                    >
+                                        {t(`store.sort.${opt.replace('-', '_')}`)}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="filter-group">
+                    <span className="filter-label font-mono">Category:</span>
+                    {Object.keys(categories).map(cat => (
+                        <button
+                            key={cat}
+                            className={`filter-btn ${activeCategory === cat ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveCategory(cat);
+                                setActiveSubCategory("All"); // Reset sub on cat change
+                            }}
+                        >
+                            {cat === "All" ? t('store.filters.all') : cat}
+                        </button>
+                    ))}
+                </div>
+
+                {activeCategory !== "All" && (
+                    <div className="filter-group sub-filters">
+                        <span className="filter-label font-mono">Type:</span>
+                        {categories[activeCategory].map(sub => (
+                            <button
+                                key={sub}
+                                className={`filter-btn ${activeSubCategory === sub ? 'active sub-active' : ''}`}
+                                onClick={() => setActiveSubCategory(sub)}
+                            >
+                                {sub === "All" ? t('store.filters.all') : sub}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="store-grid">
+                {filteredTemplates.length > 0 ? (
+                    filteredTemplates.map((item) => (
+                        <div key={item.id} className="store-card glass-panel" onClick={() => handleViewDetails(item)}>
+                            <div className="card-preview">
+                                <div className="preview-placeholder" style={{ backgroundImage: item.image_url ? `url(${item.image_url})` : 'none' }}></div>
+                                <div className="card-overlay">
+                                    <button className="view-btn">{t('store.view_details') || "View Details"}</button>
+                                </div>
+                                <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
+                                    {item.price === "Free" || item.price === "$0" ? 'Free' : 'Premium'}
+                                </span>
+                            </div>
+                            <div className="card-content">
+                                <div className="card-header">
+                                    <h3 className="card-title">{item.title}</h3>
+                                    <div className="card-badges">
+                                        <span className="badge category">{item.category}</span>
+                                        {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
+                                    </div>
+                                </div>
+
+                                <div className="card-tags">
+                                    {item.tech && item.tech.slice(0, 3).map((tag, i) => (
+                                        <span key={i} className="tech-tag font-mono">{tag}</span>
+                                    ))}
+                                </div>
+
+                                <div className="card-divider"></div>
+
+                                <div className="card-footer">
+                                    <span className="card-price font-mono">{item.price}</span>
+                                    <button
+                                        className={`add-cart-btn ${addedItems[item.id] ? 'added' : ''}`}
+                                        aria-label="Add to cart"
+                                        onClick={(e) => handleAddToCart(e, item)}
+                                    >
+                                        {addedItems[item.id] ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="no-results font-mono">{t('store.coming_soon')}</div>
+                )}
+            </div>
+
+            {selectedItem && (
+                <div className="modal-overlay" onClick={() => setSelectedItem(null)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={() => setSelectedItem(null)}>
+                            <X size={24} />
+                        </button>
+
+                        <div className="modal-body">
+                            <div className="modal-image-container">
+                                <div
+                                    className="modal-image"
+                                    style={{ backgroundImage: selectedItem.image_url ? `url(${selectedItem.image_url})` : 'none' }}
+                                ></div>
+                            </div>
+
+                            <div className="modal-details">
+                                <div className="modal-header">
+                                    <div className="modal-badges">
+                                        <span className="badge category">{selectedItem.category}</span>
+                                        {selectedItem.subCategory !== "All" && <span className="badge sub-category">{selectedItem.subCategory}</span>}
+                                    </div>
+                                    <h2 className="modal-title">{selectedItem.title}</h2>
+                                    <span className="modal-price">{selectedItem.price}</span>
+                                </div>
+
+                                <div className="modal-description">
+                                    <p>Description placeholder for {selectedItem.title}. This template is optimized for high performance and includes modern UI components.</p>
+                                </div>
+
+                                <div className="modal-tags">
+                                    <span className="tag-label font-mono">Technologies:</span>
+                                    <div className="tags-list">
+                                        {selectedItem.tech && selectedItem.tech.map((tag, i) => (
+                                            <span key={i} className="tech-tag font-mono">{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button
+                                        className={`modal-buy-btn ${addedItems[selectedItem.id] ? 'added' : ''}`}
+                                        onClick={(e) => handleAddToCart(e, selectedItem)}
+                                    >
+                                        {addedItems[selectedItem.id] ? (
+                                            <>
+                                                <span>Added to Cart</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Add to Cart</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default StorePage;
