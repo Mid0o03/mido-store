@@ -8,13 +8,15 @@ import './PageStyles.css';
 
 const ClientDashboard = () => {
     const { t } = useLanguage();
-    const { logoutClient, clientUser } = useAuth();
+    const { logout, clientUser } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
 
-    const handleLogout = () => {
-        logoutClient();
+    const handleLogout = async () => {
+        await logout();
         navigate('/');
+        // Optional: Force reload to clear any residual state if needed
+        // window.location.reload(); 
     };
 
     // Load purchased items from Supabase
@@ -68,11 +70,11 @@ const ClientDashboard = () => {
             <div className="glass-panel" style={{ padding: '2rem', marginBottom: '3rem' }}>
                 <div className="user-welcome" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t('client.welcome')}, User</h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>{t('client.member_since')} 2023</p>
+                        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t('client.welcome')}, {clientUser?.email?.split('@')[0] || 'User'}</h2>
+                        <p style={{ color: 'var(--text-secondary)' }}>{t('client.member_since')} 2024</p>
                     </div>
                     <button onClick={handleLogout} className="filter-btn" style={{ borderColor: 'rgba(255,100,100,0.3)', color: '#ffaaaa' }}>
-                        <LogOut size={16} style={{ marginRight: '0.5rem' }} /> {t('admin.logout') || 'Logout'}
+                        <LogOut size={16} style={{ marginRight: '0.5rem' }} /> Déconnexion
                     </button>
                 </div>
             </div>
