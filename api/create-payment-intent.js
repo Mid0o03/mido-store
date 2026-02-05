@@ -9,7 +9,10 @@ export default async function handler(req, res) {
         });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    // SANITIZATION: Remove whitespace and potential quotes commonly added by mistake
+    const secretKey = process.env.STRIPE_SECRET_KEY.trim().replace(/^['"]|['"]$/g, '');
+
+    const stripe = new Stripe(secretKey);
 
     if (req.method === 'POST') {
         try {
