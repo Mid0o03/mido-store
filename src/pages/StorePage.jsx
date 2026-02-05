@@ -270,9 +270,6 @@ const StorePage = () => {
                     </div>
         </div>
     )
-}
-        </div >
-    );
 };
 
 export default StorePage;
