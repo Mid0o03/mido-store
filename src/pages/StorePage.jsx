@@ -219,7 +219,86 @@ const StorePage = () => {
                                     )}
                                 </div>
 
-                                {/* ... (lines 178-258 untouched) ... */}
+                                <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
+                                    {item.price === "Free" || item.price === "$0" ? 'Free' : 'Premium'}
+                                </span>
+                            </div>
+                            <div className="card-content">
+                                <div className="card-header">
+                                    <h3 className="card-title">{item.title}</h3>
+                                    <div className="card-badges">
+                                        <span className="badge category">{item.category}</span>
+                                        {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
+                                    </div>
+                                </div>
+
+                                <div className="card-tags">
+                                    {item.tech && item.tech.slice(0, 3).map((tag, i) => (
+                                        <span key={i} className="tech-tag font-mono">{tag}</span>
+                                    ))}
+                                </div>
+
+                                <div className="card-divider"></div>
+
+                                <div className="card-footer">
+                                    <span className="card-price font-mono">{item.price}</span>
+                                    <button
+                                        className={`add-cart-btn ${addedItems[item.id] ? 'added' : ''}`}
+                                        aria-label="Add to cart"
+                                        onClick={(e) => handleAddToCart(e, item)}
+                                    >
+                                        {addedItems[item.id] ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="no-results font-mono">{t('store.coming_soon')}</div>
+                )}
+            </div>
+
+            {selectedItem && (
+                <div className="modal-overlay" onClick={() => setSelectedItem(null)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={() => setSelectedItem(null)}>
+                            <X size={24} />
+                        </button>
+
+                        <div className="modal-body">
+                            <div className="modal-image-container">
+                                <div
+                                    className="modal-image"
+                                    style={{ backgroundImage: selectedItem.image_url ? `url(${selectedItem.image_url})` : 'none' }}
+                                ></div>
+                            </div>
+
+                            <div className="modal-details">
+                                <div className="modal-header">
+                                    <div className="modal-badges">
+                                        <span className="badge category">{selectedItem.category}</span>
+                                        {selectedItem.subCategory !== "All" && <span className="badge sub-category">{selectedItem.subCategory}</span>}
+                                    </div>
+                                    <h2 className="modal-title">{selectedItem.title}</h2>
+                                    <span className="modal-price">{selectedItem.price}</span>
+                                </div>
+
+                                <div className="modal-description">
+                                    <p>Description placeholder for {selectedItem.title}. This template is optimized for high performance and includes modern UI components.</p>
+                                </div>
+
+                                <div className="modal-tags">
+                                    <span className="tag-label font-mono">Technologies:</span>
+                                    <div className="tags-list">
+                                        {selectedItem.tech && selectedItem.tech.map((tag, i) => (
+                                            <span key={i} className="tech-tag font-mono">{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
 
                                 <div className="modal-actions">
                                     <button
@@ -268,8 +347,8 @@ const StorePage = () => {
                             </div>
                         </div>
                     </div>
-        </div>
-    )
-};
+                </div>
+            )
+            };
 
-export default StorePage;
+            export default StorePage;
