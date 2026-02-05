@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     const checkAdmin = (session) => {
         // Simple Admin Check: In detailed apps, use Public Profile table or App Metadata.
         // For MVP: Check email.
-        if (session?.user?.email === 'admin@mido.com') { // REPLACE with actual admin email if known, or use metadata
+        if (session?.user?.email === 'admin@mido.com' || session?.user?.email === 'midodev.fr@gmail.com') { // REPLACE with actual admin email if known, or use metadata
             setIsAdmin(true);
         } else {
             setIsAdmin(false);
