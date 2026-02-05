@@ -56,8 +56,8 @@ export default async function handler(req, res) {
 
         // 4. Send Email via Resend
         const data = await resend.emails.send({
-            from: 'Mido Store <onboarding@resend.dev>', // Use 'onboarding@resend.dev' for testing without domain
-            to: [email], // In test mode, restricted to your account email
+            from: 'Mido Store <contact@midodev.fr>',
+            to: [email],
             subject: `Votre Reçu de Commande Mido Store`,
             html: htmlContent,
         });
