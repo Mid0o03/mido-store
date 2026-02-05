@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Trash2, CreditCard } from 'lucide-react';
+import { X, Trash2, CreditCard, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../stripe';
@@ -174,56 +174,111 @@ const CartDrawer = () => {
                         <p>Merci pour votre achat.</p>
                     </div>
                 ) : paymentStep === 'auth' ? (
-                    <div className="payment-form">
-                        <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+                    <div className="payment-form" style={{ padding: '0 1rem' }}>
+                        {/* Tabs for Cart Auth */}
+                        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '2rem' }}>
+                            <button
+                                onClick={() => { setAuthMode('login'); setAuthError(null); }}
+                                style={{
+                                    flex: 1,
+                                    padding: '1rem',
+                                    background: authMode === 'login' ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                    color: authMode === 'login' ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: authMode === 'login' ? '600' : '400',
+                                    borderBottom: authMode === 'login' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                CONNEXION
+                            </button>
+                            <button
+                                onClick={() => { setAuthMode('signup'); setAuthError(null); }}
+                                style={{
+                                    flex: 1,
+                                    padding: '1rem',
+                                    background: authMode !== 'login' ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                    color: authMode !== 'login' ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: authMode !== 'login' ? '600' : '400',
+                                    borderBottom: authMode !== 'login' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                INSCRIPTION
+                            </button>
+                        </div>
+
+                        <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
                             {authMode === 'login' ? 'Connectez-vous pour finaliser votre achat.' : 'Créez un compte pour accéder à vos téléchargements.'}
                         </p>
+
                         <form onSubmit={handleAuthSubmit}>
                             {authError && (
-                                <div className="mb-4 text-red-500 text-sm bg-red-500/10 p-2 rounded">
+                                <div className="mb-4 text-red-500 text-sm bg-red-500/10 p-2 rounded text-center">
                                     {authError}
                                 </div>
                             )}
                             <div className="form-group mb-4">
-                                <label>Email</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>EMAIL</label>
                                 <input
                                     type="email"
                                     className="admin-input"
                                     placeholder="email@example.com"
                                     value={authEmail}
                                     onChange={(e) => setAuthEmail(e.target.value)}
+                                    style={{
+                                        background: 'rgba(0,0,0,0.2)',
+                                        border: '1px solid var(--accent-color)',
+                                        padding: '1rem',
+                                        fontSize: '1rem',
+                                        height: 'auto',
+                                        outline: 'none',
+                                        boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                    }}
                                     required
                                 />
                             </div>
                             <div className="form-group mb-6">
-                                <label>Mot de passe</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>MOT DE PASSE</label>
                                 <input
                                     type="password"
                                     className="admin-input"
                                     placeholder="••••••••"
                                     value={authPassword}
                                     onChange={(e) => setAuthPassword(e.target.value)}
+                                    style={{
+                                        background: 'rgba(0,0,0,0.2)',
+                                        border: '1px solid var(--accent-color)',
+                                        padding: '1rem',
+                                        fontSize: '1rem',
+                                        height: 'auto',
+                                        outline: 'none',
+                                        boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
+                                    }}
                                     required
                                 />
                             </div>
-                            <button disabled={isAuthLoading} className="cta-primary w-full mb-4" style={{ justifyContent: 'center', width: '100%' }}>
-                                {isAuthLoading ? 'CHARGEMENT...' : (authMode === 'login' ? 'SE CONNECTER & PAYER' : 'S\'INSCRIRE & PAYER')}
+                            <button disabled={isAuthLoading} className="cta-primary w-full mb-4"
+                                style={{
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    padding: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}>
+                                {isAuthLoading ? 'TRAITEMENT...' : (authMode === 'login' ? 'PAYER' : 'S\'INSCRIRE & PAYER')}
+                                {!isAuthLoading && <ArrowRight size={20} />}
                             </button>
                         </form>
+
                         <div className="text-center">
                             <button
-                                className="text-accent text-sm"
-                                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                                className="text-secondary text-sm mt-4 hover:text-white text-center"
+                                onClick={() => setPaymentStep('cart')}
                             >
-                                {authMode === 'login' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
+                                &larr; Retour au panier
                             </button>
                         </div>
-                        <button
-                            className="text-secondary text-sm mt-6 hover:text-white text-center"
-                            onClick={() => setPaymentStep('cart')}
-                        >
-                            &larr; Retour au panier
-                        </button>
                     </div>
                 ) : isPaymentMode ? (
                     <div className="stripe-container" style={{ padding: '1rem' }}>
