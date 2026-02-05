@@ -37,21 +37,36 @@ const ClientDashboard = () => {
 
             if (error) {
                 console.error("Error fetching purchases:", error);
-                alert(`Error Fetching: ${error.message}`);
+                // alert(`Error Fetching: ${error.message}`);
             } else {
-                if (data.length === 0) {
-                    // Double check if RLS might be hiding them? 
-                    // No, if RLS hides them, data is just empty [].
+                // Fetch template details (specifically file_url) for purchased items
+                // This is needed because 'purchases' might effectively be a snapshot logs, 
+                // but the file mapping is in 'templates'
+                const templateIds = data.map(p => p.template_id);
+                let fileMap = {};
+
+                if (templateIds.length > 0) {
+                    const { data: templatesData } = await supabase
+                        .from('templates')
+                        .select('id, file_url, demo_url')
+                        .in('id', templateIds);
+
+                    if (templatesData) {
+                        templatesData.forEach(t => {
+                            fileMap[t.id] = t;
+                        });
+                    }
                 }
 
-                // Map DB columns to UI expected format if needed (or just use direct)
                 const assets = data.map(item => ({
                     id: item.template_id,
+                    purchaseId: item.id,
                     title: item.template_title,
                     version: item.template_version,
                     date: new Date(item.created_at).toLocaleDateString(),
                     image_url: item.template_image,
-                    downloadLink: "#"
+                    file_url: fileMap[item.template_id]?.file_url,
+                    demo_url: fileMap[item.template_id]?.demo_url
                 }));
                 setMyAssets(assets);
             }
@@ -62,6 +77,45 @@ const ClientDashboard = () => {
     }, [clientUser]);
 
     const [viewingCode, setViewingCode] = useState(null);
+
+    const handleDownload = async (asset) => {
+        if (!asset.file_url) {
+            alert("Download file not configured for this item.");
+            return;
+        }
+
+        try {
+            // file_url is stored as full URL or path? 
+            // In AdminPage we stored the full public URL for images, but for ZIPs we likely stored the path or public URL.
+            // If it's in 'assets' private bucket, we need a signed URL.
+            // Assuming Admin uploaded to 'assets' bucket and stored the path.
+
+            // Check if it's a full URL (public) or a path
+            if (asset.file_url.startsWith('http')) {
+                window.open(asset.file_url, '_blank');
+                return;
+            }
+
+            // It's a path in storage, generate signed URL
+            const { data, error } = await supabase
+                .storage
+                .from('assets') // Bucket name
+                .createSignedUrl(asset.file_url, 60); // 60 seconds validity
+
+            if (error) throw error;
+
+            // Trigger download
+            const link = document.createElement('a');
+            link.href = data.signedUrl;
+            link.setAttribute('download', `${asset.title}.zip`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error("Download error:", err);
+            alert("Error downloading file: " + err.message);
+        }
+    };
 
     return (
         <div className="page-container container">
@@ -104,7 +158,7 @@ const ClientDashboard = () => {
                             <div className="card-preview" style={{ height: '180px' }}>
                                 <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }}></div>
                                 <div className="card-overlay">
-                                    <button className="view-btn" onClick={() => setViewingCode(asset)}>
+                                    <button className="view-btn" onClick={() => handleDownload(asset)}>
                                         <Download size={18} style={{ marginRight: '0.5rem' }} />
                                         {t('client.download')}
                                     </button>
@@ -138,23 +192,31 @@ const ClientDashboard = () => {
                 <div className="modal-overlay" onClick={() => setViewingCode(null)}>
                     <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                            <h2 style={{ color: 'var(--accent-color)' }}>Source Code: {viewingCode.title}</h2>
+                            <h2 style={{ color: 'var(--accent-color)' }}>{viewingCode.title}</h2>
                             <button className="close-btn" onClick={() => setViewingCode(null)}>X</button>
                         </div>
-                        <pre style={{
-                            background: '#0a0a0a',
-                            padding: '1.5rem',
-                            borderRadius: '8px',
-                            overflowX: 'auto',
-                            color: '#e0e0e0',
-                            fontFamily: 'monospace',
-                            fontSize: '0.9rem',
-                            border: '1px solid rgba(255,255,255,0.1)'
-                        }}>
-                            {viewingCode.code_snippet || "// Code reference implementation not available in this demo."}
-                        </pre>
-                        <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-                            <button className="cta-primary">Download .ZIP</button>
+
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Documentation & Access</h3>
+                            <p style={{ color: '#ccc', lineHeight: '1.6' }}>
+                                Thank you for your purchase! You can download the source code ZIP directly below.
+                                If you need support, please contact support@midodev.fr with your Purchase ID: <span className="font-mono text-accent">{viewingCode.purchaseId}</span>.
+                            </p>
+                        </div>
+
+                        {viewingCode.demo_url && (
+                            <div style={{ marginBottom: '2rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#888' }}>Live Demo Link:</label>
+                                <a href={viewingCode.demo_url} target="_blank" rel="noopener" style={{ color: 'var(--accent-color)' }}>{viewingCode.demo_url}</a>
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: '1.5rem', textAlign: 'right', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button className="filter-btn" onClick={() => setViewingCode(null)}>Close</button>
+                            <button className="cta-primary" onClick={() => handleDownload(viewingCode)}>
+                                <Download size={18} style={{ marginRight: '0.5rem' }} />
+                                Download .ZIP
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -162,5 +224,4 @@ const ClientDashboard = () => {
         </div>
     );
 };
-
 export default ClientDashboard;
