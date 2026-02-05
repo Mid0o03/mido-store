@@ -12,7 +12,7 @@ const Footer = () => {
                 <span className="copyright">© 2024 MIDO. {t('footer.rights')}</span>
                 <div className="social-links">
                     <a href="https://www.maeljerome.dev" target="_blank" rel="noopener noreferrer">PORTFOLIO</a>
-                    <a href="#">LINKEDIN</a>
+                    <a href="https://www.linkedin.com/in/mael-jerome" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
                 </div>
                 <div className="footer-legal">
                     <Link to="/mentions-legales">{t('legal.mentions.link')}</Link>
