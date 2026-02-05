@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Download, ExternalLink, Package, LogOut } from 'lucide-react';
@@ -7,28 +8,48 @@ import './PageStyles.css';
 
 const ClientDashboard = () => {
     const { t } = useLanguage();
-    const { logoutClient } = useAuth();
+    const { logoutClient, clientUser } = useAuth();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
 
     const handleLogout = () => {
         logoutClient();
         navigate('/');
     };
-    // Load purchased items
-    const [myAssets, setMyAssets] = useState(() => {
-        const saved = localStorage.getItem('purchasedAssets');
-        const defaultAssets = [
-            {
-                id: 101,
-                title: "NEON DASHBOARD",
-                version: "v2.0.1",
-                date: "2023-10-24",
-                image_url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-                downloadLink: "#"
+
+    // Load purchased items from Supabase
+    const [myAssets, setMyAssets] = useState([]);
+
+    useEffect(() => {
+        const fetchPurchases = async () => {
+            if (!clientUser) return;
+
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('purchases')
+                .select('*')
+                .eq('user_id', clientUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching purchases:", error);
+            } else {
+                // Map DB columns to UI expected format if needed (or just use direct)
+                const assets = data.map(item => ({
+                    id: item.template_id,
+                    title: item.template_title,
+                    version: item.template_version,
+                    date: new Date(item.created_at).toLocaleDateString(),
+                    image_url: item.template_image,
+                    downloadLink: "#"
+                }));
+                setMyAssets(assets);
             }
-        ];
-        return saved ? JSON.parse(saved) : defaultAssets;
-    });
+            setLoading(false);
+        };
+
+        fetchPurchases();
+    }, [clientUser]);
 
     const [viewingCode, setViewingCode] = useState(null);
 
