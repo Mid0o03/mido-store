@@ -61,10 +61,13 @@ const AdminPage = () => {
         image_url: '',
         image_file: null,
         status: 'published',
-        is_featured: false
+        is_featured: false,
+        file_url: null,
+        zip_file: null
     });
 
     const [isDragging, setIsDragging] = useState(false);
+    const [isDraggingZip, setIsDraggingZip] = useState(false);
 
     // Filter & Search State
     const [searchTerm, setSearchTerm] = useState('');
@@ -110,7 +113,9 @@ const AdminPage = () => {
             image_url: template.image_url,
             image_file: null,
             status: template.status || 'published',
-            is_featured: template.is_featured || false
+            is_featured: template.is_featured || false,
+            file_url: template.file_url || null,
+            zip_file: null
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -127,7 +132,9 @@ const AdminPage = () => {
             image_url: '',
             image_file: null,
             status: 'published',
-            is_featured: false
+            is_featured: false,
+            file_url: null,
+            zip_file: null
         });
     };
 
@@ -143,7 +150,9 @@ const AdminPage = () => {
             image_url: template.image_url, // Keeps the same image URL initially
             image_file: null,
             status: 'draft', // Safety: Duplicate as draft by default
-            is_featured: false
+            is_featured: false,
+            file_url: template.file_url || null, // Might want to not copy this? But usually convenient.
+            zip_file: null
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -445,7 +454,7 @@ const AdminPage = () => {
                         <label htmlFor="featured" className="cursor-pointer select-none">Feature on Homepage</label>
                     </div>
 
-                    {/* Drag & Drop Zone */}
+                    {/* Drag & Drop Zone - IMAGE */}
                     <div
                         className={`image-drop-zone ${isDragging ? 'dragging' : ''}`}
                         onDragOver={handleDragOver}
@@ -465,8 +474,47 @@ const AdminPage = () => {
                             </div>
                         ) : (
                             <div className="drop-placeholder">
-                                <p className="mb-2">Drag & Drop Image Here</p>
+                                <p className="mb-2">Drag & Drop Image (JPG/PNG)</p>
                                 <span className="text-secondary text-sm">Or paste URL below</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* NEW: Drag & Drop Zone - ZIP FILE */}
+                    <div
+                        className={`image-drop-zone ${isDraggingZip ? 'dragging' : ''}`}
+                        onDragOver={(e) => { e.preventDefault(); setIsDraggingZip(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); setIsDraggingZip(false); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDraggingZip(false);
+                            const file = e.dataTransfer.files[0];
+                            if (file && (file.name.endsWith('.zip') || file.type.includes('zip'))) {
+                                setFormData({ ...formData, zip_file: file, file_url: file.name });
+                            } else {
+                                alert("Please upload a .zip file");
+                            }
+                        }}
+                    >
+                        {formData.file_url ? (
+                            <div className="preview-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <div className="text-4xl">📦</div>
+                                <span className="text-sm mt-2 text-accent truncate w-full px-2" title={formData.file_url}>
+                                    {formData.zip_file ? `Ready to upload: ${formData.zip_file.name}` : `Linked: ${formData.file_url.substring(0, 15)}...`}
+                                </span>
+                                <button
+                                    type="button"
+                                    className="remove-image-btn"
+                                    onClick={() => setFormData({ ...formData, file_url: null, zip_file: null })}
+                                    style={{ top: '-10px', right: '-10px' }}
+                                >
+                                    X
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="drop-placeholder">
+                                <p className="mb-2">Drag & Drop Product File (.ZIP)</p>
+                                <span className="text-secondary text-sm">Max 50MB</span>
                             </div>
                         )}
                     </div>

@@ -136,22 +136,53 @@ export const Hero = () => (
         }
     };
 
+    const uploadAsset = async (file) => {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            // Store in a 'private' folder structure if needed, or root
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // For private buckets, we store the PATH, not the Public URL
+            // because we will need to generate signed URLs later.
+            // Or we can store the full Signed URL with long expiry? 
+            // Better to store path and generate signed URL on demand.
+            return filePath;
+        } catch (error) {
+            console.error('Error uploading asset:', error.message);
+            throw error;
+        }
+    };
+
     const addTemplate = async (templateData) => {
         try {
             let imageUrl = templateData.image_url;
+            let fileUrl = templateData.file_url;
 
-            // If there's a file to upload
+            // Image Upload
             if (templateData.image_file) {
                 imageUrl = await uploadImage(templateData.image_file);
+            }
+
+            // Asset (ZIP) Upload
+            if (templateData.zip_file) {
+                fileUrl = await uploadAsset(templateData.zip_file);
             }
 
             const newTemplate = {
                 title: templateData.title,
                 category: templateData.category,
-                sub_category: templateData.subCategory, // Map to DB column snake_case
+                sub_category: templateData.subCategory,
                 price: templateData.price,
                 tech: templateData.tech,
-                image_url: imageUrl
+                image_url: imageUrl,
+                file_url: fileUrl
             };
 
             const { data, error } = await supabase
@@ -171,19 +202,26 @@ export const Hero = () => (
     const updateTemplate = async (id, updates) => {
         try {
             let imageUrl = updates.image_url;
+            let fileUrl = updates.file_url;
 
-            // Handle new image upload if present
+            // Handle new image upload
             if (updates.image_file) {
                 imageUrl = await uploadImage(updates.image_file);
+            }
+
+            // Handle new zip upload
+            if (updates.zip_file) {
+                fileUrl = await uploadAsset(updates.zip_file);
             }
 
             const updatedData = {
                 title: updates.title,
                 category: updates.category,
-                sub_category: updates.subCategory, // Map camelCase to snake_case
+                sub_category: updates.subCategory,
                 price: updates.price,
                 tech: updates.tech,
                 image_url: imageUrl,
+                file_url: fileUrl,
                 status: updates.status,
                 is_featured: updates.is_featured
             };
