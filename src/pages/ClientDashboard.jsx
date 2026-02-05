@@ -71,40 +71,58 @@ const ClientDashboard = () => {
 
             <h2 className="section-title" style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>{t('client.my_assets')}</h2>
 
-            <div className="store-grid">
-                {myAssets.map(asset => (
-                    <div key={asset.id} className="store-card glass-panel" style={{ cursor: 'default' }}>
-                        <div className="card-preview" style={{ height: '180px' }}>
-                            <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }}></div>
-                            <div className="card-overlay">
-                                <button className="view-btn" onClick={() => setViewingCode(asset)}>
-                                    <Download size={18} style={{ marginRight: '0.5rem' }} />
-                                    {t('client.download')}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="card-content">
-                            <div className="card-header">
-                                <h3 className="card-title">{asset.title}</h3>
-                                <span className="badge category">{asset.version || 'v1.0'}</span>
-                            </div>
-                            <div className="card-tags">
-                                <span className="tech-tag font-mono">{t('client.purchased')}: {asset.date || asset.purchaseDate}</span>
-                            </div>
-                            <div className="card-divider"></div>
-                            <div className="card-footer">
-                                <button
-                                    className="filter-btn"
-                                    onClick={() => setViewingCode(asset)}
-                                    style={{ width: '100%', justifyContent: 'center', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
-                                >
-                                    <Package size={16} /> {t('client.documentation')}
-                                </button>
-                            </div>
-                        </div>
+            {loading ? (
+                <div className="flex-center" style={{ minHeight: '200px' }}>Chargement...</div>
+            ) : myAssets.length === 0 ? (
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                    <h3 style={{ marginBottom: '1rem' }}>Aucun achat trouvé</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                        Vos achats apparaîtront ici une fois le paiement validé.
+                    </p>
+                    <button className="cta-primary" onClick={() => navigate('/store')}>
+                        Aller à la boutique
+                    </button>
+                    {/* Debug Info for Dev */}
+                    <div style={{ marginTop: '2rem', fontSize: '0.8rem', opacity: 0.5 }}>
+                        User ID: {clientUser?.id}
                     </div>
-                ))}
-            </div>
+                </div>
+            ) : (
+                <div className="store-grid">
+                    {myAssets.map(asset => (
+                        <div key={asset.id} className="store-card glass-panel" style={{ cursor: 'default' }}>
+                            <div className="card-preview" style={{ height: '180px' }}>
+                                <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }}></div>
+                                <div className="card-overlay">
+                                    <button className="view-btn" onClick={() => setViewingCode(asset)}>
+                                        <Download size={18} style={{ marginRight: '0.5rem' }} />
+                                        {t('client.download')}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="card-content">
+                                <div className="card-header">
+                                    <h3 className="card-title">{asset.title}</h3>
+                                    <span className="badge category">{asset.version || 'v1.0'}</span>
+                                </div>
+                                <div className="card-tags">
+                                    <span className="tech-tag font-mono">{t('client.purchased')}: {asset.date || asset.purchaseDate}</span>
+                                </div>
+                                <div className="card-divider"></div>
+                                <div className="card-footer">
+                                    <button
+                                        className="filter-btn"
+                                        onClick={() => setViewingCode(asset)}
+                                        style={{ width: '100%', justifyContent: 'center', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                                    >
+                                        <Package size={16} /> {t('client.documentation')}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {viewingCode && (
                 <div className="modal-overlay" onClick={() => setViewingCode(null)}>
