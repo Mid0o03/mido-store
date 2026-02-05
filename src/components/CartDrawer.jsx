@@ -114,6 +114,24 @@ const CartDrawer = () => {
 
             if (error) {
                 console.error("Error saving purchase:", error);
+            } else {
+                // Send Email Receipt
+                try {
+                    fetch('/api/send-receipt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: clientUser.email,
+                            amount: cartTotal.toFixed(2),
+                            items: cartItems,
+                            date: new Date().toLocaleDateString()
+                        })
+                    }).then(res => res.json())
+                        .then(data => console.log("Email sent:", data))
+                        .catch(err => console.error("Email API Error:", err));
+                } catch (emailErr) {
+                    console.error("Failed to trigger email:", emailErr);
+                }
             }
         }
 
