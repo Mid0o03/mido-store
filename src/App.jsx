@@ -63,6 +63,11 @@ function App() {
     };
   }, []);
 
+  // Subdomain Check
+  const hostname = window.location.hostname;
+  // Check for 'admin' subdomain (e.g., admin.mido.com or admin.localhost for dev)
+  const isAdminSubdomain = hostname.startsWith('admin.');
+
   return (
     <Router>
       <LanguageProvider>
@@ -71,25 +76,56 @@ function App() {
             <CartProvider>
               <div className="App">
                 <ScrollToTop />
-                <Header />
-                <CartDrawer />
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/store" element={<StorePage />} />
-                  <Route path="/lab" element={<LabPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/client-login" element={<ClientLoginPage />} />
-                  <Route path="/client" element={
-                    <ProtectedRoute>
-                      <ClientDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/mentions-legales" element={<LegalPage />} />
-                  <Route path="/confidentialite" element={<LegalPage />} />
-                  <Route path="/cgu" element={<LegalPage />} />
-                </Routes>
-                <Footer />
+
+                {isAdminSubdomain ? (
+                  /* --- ADMIN APP --- */
+                  <Routes>
+                    <Route path="/" element={<AdminPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                ) : (
+                  /* --- PUBLIC / CLIENT APP --- */
+                  <>
+                    <Header />
+                    <CartDrawer />
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/store" element={<StorePage />} />
+                      <Route path="/lab" element={<LabPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+
+                      {/* Admin route redirect if accessed from main domain */}
+                      <Route path="/admin" element={
+                        <div className="page-container container flex-center" style={{ minHeight: '60vh', textAlign: 'center' }}>
+                          <div className="glass-panel" style={{ padding: '3rem' }}>
+                            <h2 className="mb-4">Espace Administration</h2>
+                            <p className="mb-6 text-secondary">
+                              L'interface d'administration est maintenant sur un sous-domaine dédié.
+                            </p>
+                            <a
+                              href={`//admin.${hostname.replace('www.', '')}`}
+                              className="cta-primary"
+                            >
+                              Aller sur admin.{hostname.replace('www.', '')}
+                            </a>
+                          </div>
+                        </div>
+                      } />
+
+                      <Route path="/client-login" element={<ClientLoginPage />} />
+                      <Route path="/client" element={
+                        <ProtectedRoute>
+                          <ClientDashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/mentions-legales" element={<LegalPage />} />
+                      <Route path="/confidentialite" element={<LegalPage />} />
+                      <Route path="/cgu" element={<LegalPage />} />
+                    </Routes>
+                    <Footer />
+                  </>
+                )}
+
               </div>
             </CartProvider>
           </DataProvider>
