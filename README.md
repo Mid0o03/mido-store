@@ -1,16 +1,36 @@
-# React + Vite
+# Mido Store - High-End Digital Asset Marketplace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A premium e-commerce platform for digital templates (SaaS, Mobile UI, Portfolios).**
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🛍️ Smart Store
+-   **Advanced Filtering**: Filter by Category, Type, and Tech Stack.
+-   **Search & Sort**: Real-time search and sorting (Popularity, Price, Date).
+-   **Modern UI**: Glassmorphism aesthetic, smooth animations, and responsive design.
 
-## React Compiler
+### 💳 Secure Checkout Flow
+-   **Cart Drawer**: Persistent cart with slide-out animation.
+-   **Auth-First Payment**: Integrated Login/Signup flow directly within the purchase journey.
+-   **Payment Simulation**: Realistic credit card entry and validation.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👤 Client Dashboard
+-   **Instant Delivery**: Auto-redirect to dashboard after purchase.
+-   **My Assets**: View and download purchased source code.
+-   **Code Preview**: Read-only highlighting of template code.
 
-## Expanding the ESLint configuration
+### 🧪 R&D Lab
+-   **Mido Lab**: Experimental features showcase (Bento Grid layout).
+-   **Status Tracking**: Alpha/Beta/Concept indicators.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+-   **Frontend**: React, Vite, Framer Motion, GSAP, Lucide React.
+-   **Styles**: CSS Modules, Glassmorphism, Responsive Grid.
+-   **State**: Context API (Auth, Cart, Data, Language).
+
+## 🔧 Setup
+1.  `npm install`
+2.  `npm run dev`
+
+---
+*Built by [Mido Dev]*
