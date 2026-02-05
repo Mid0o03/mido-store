@@ -63,7 +63,8 @@ const AdminPage = () => {
         status: 'published',
         is_featured: false,
         file_url: null,
-        zip_file: null
+        zip_file: null,
+        demo_url: ''
     });
 
     const [isDragging, setIsDragging] = useState(false);
@@ -115,7 +116,8 @@ const AdminPage = () => {
             status: template.status || 'published',
             is_featured: template.is_featured || false,
             file_url: template.file_url || null,
-            zip_file: null
+            zip_file: null,
+            demo_url: template.demo_url || ''
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -134,7 +136,8 @@ const AdminPage = () => {
             status: 'published',
             is_featured: false,
             file_url: null,
-            zip_file: null
+            zip_file: null,
+            demo_url: ''
         });
     };
 
@@ -152,7 +155,8 @@ const AdminPage = () => {
             status: 'draft', // Safety: Duplicate as draft by default
             is_featured: false,
             file_url: template.file_url || null, // Might want to not copy this? But usually convenient.
-            zip_file: null
+            zip_file: null,
+            demo_url: template.demo_url || ''
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -524,6 +528,14 @@ const AdminPage = () => {
                         value={formData.image_url}
                         onChange={e => setFormData({ ...formData, image_url: e.target.value })}
                         className="admin-input full-width"
+                    />
+
+                    <input
+                        placeholder="Live Demo URL (e.g. https://demo.mido.com)"
+                        value={formData.demo_url || ''}
+                        onChange={e => setFormData({ ...formData, demo_url: e.target.value })}
+                        className="admin-input full-width"
+                        style={{ borderColor: formData.demo_url ? 'var(--accent-color)' : '' }}
                     />
 
                     <div className="full-width">

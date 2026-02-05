@@ -182,7 +182,8 @@ export const Hero = () => (
                 price: templateData.price,
                 tech: templateData.tech,
                 image_url: imageUrl,
-                file_url: fileUrl
+                file_url: fileUrl,
+                demo_url: templateData.demo_url
             };
 
             const { data, error } = await supabase
@@ -222,6 +223,7 @@ export const Hero = () => (
                 tech: updates.tech,
                 image_url: imageUrl,
                 file_url: fileUrl,
+                demo_url: updates.demo_url,
                 status: updates.status,
                 is_featured: updates.is_featured
             };
