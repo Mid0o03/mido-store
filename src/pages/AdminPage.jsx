@@ -16,182 +16,28 @@ const TECH_STACKS = [
 ];
 
 const AdminPage = () => {
-    const { session, login, logout } = useAuth();
-    const { templates, addTemplate, updateTemplate, deleteTemplate } = useData();
-    const { t } = useLanguage();
+    const { session, isAdmin, login, logout } = useAuth();
+    // ... (rest of hooks)
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+    // ... (state definitions)
 
-    // Edit Mode State
-    const [editMode, setEditMode] = useState(false);
-    const [editingId, setEditingId] = useState(null);
+    if (loading) return <div className="flex-center">Loading...</div>;
 
-    const [formData, setFormData] = useState({
-        title: '',
-        category: 'Web',
-        subCategory: '',
-        price: '',
-        tech: '',
-        image_url: '',
-        image_file: null,
-        status: 'published',
-        is_featured: false
-    });
-
-    const [isDragging, setIsDragging] = useState(false);
-
-    // Filter & Search State
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterCategory, setFilterCategory] = useState('All');
-    const [filterStatus, setFilterStatus] = useState('All');
-
-    // Initial subCategory based on default category
-    useEffect(() => {
-        // Only reset subCategory if we are NOT in edit mode (to avoid overwriting existing data on load)
-        if (!editMode && !formData.subCategory && CATEGORIES[formData.category]) {
-            setFormData(prev => ({ ...prev, subCategory: CATEGORIES[prev.category][0] }));
-        }
-    }, [formData.category, editMode]);
-
-    const handleCategoryChange = (e) => {
-        const newCat = e.target.value;
-        const newSubCat = CATEGORIES[newCat] ? CATEGORIES[newCat][0] : '';
-        setFormData(prev => ({
-            ...prev,
-            category: newCat,
-            subCategory: newSubCat
-        }));
-    };
-
-    const toggleTech = (tech) => {
-        const currentTechs = formData.tech ? formData.tech.split(',').map(t => t.trim()).filter(Boolean) : [];
-        if (currentTechs.includes(tech)) {
-            setFormData({ ...formData, tech: currentTechs.filter(t => t !== tech).join(', ') });
-        } else {
-            setFormData({ ...formData, tech: [...currentTechs, tech].join(', ') });
-        }
-    };
-
-    const handleEdit = (template) => {
-        setEditMode(true);
-        setEditingId(template.id);
-        setFormData({
-            title: template.title,
-            category: template.category,
-            subCategory: template.sub_category || template.subCategory, // Handle potential DB naming diffs
-            price: template.price,
-            tech: Array.isArray(template.tech) ? template.tech.join(', ') : template.tech,
-            image_url: template.image_url,
-            image_file: null,
-            status: template.status || 'published',
-            is_featured: template.is_featured || false
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleCancelEdit = () => {
-        setEditMode(false);
-        setEditingId(null);
-        setFormData({
-            title: '',
-            category: 'Web',
-            subCategory: CATEGORIES['Web'][0],
-            price: '',
-            tech: '',
-            image_url: '',
-            image_file: null,
-            status: 'published',
-            is_featured: false
-        });
-    };
-
-    const handleDuplicate = (template) => {
-        setEditMode(false); // We are adding a NEW item, not editing the old one
-        setEditingId(null);
-        setFormData({
-            title: `${template.title} (Copy)`,
-            category: template.category,
-            subCategory: template.sub_category || template.subCategory,
-            price: template.price,
-            tech: Array.isArray(template.tech) ? template.tech.join(', ') : template.tech,
-            image_url: template.image_url, // Keeps the same image URL initially
-            image_file: null,
-            status: 'draft', // Safety: Duplicate as draft by default
-            is_featured: false
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const url = URL.createObjectURL(file);
-            setFormData({ ...formData, image_url: url, image_file: file });
-        }
-    };
-
-    // Handle manual file selection if needed (could add a hidden input)
-    // For now, dragging is the primary way or pasting URL
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        const success = await login(email, password);
-        setLoading(false);
-        if (!success) alert('Login Failed');
-    };
-
-    const formatPrice = (price) => {
-        let p = price.toString();
-        if (!p.includes('€')) return `${p}€`;
-        return p;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        const payload = {
-            ...formData,
-            price: formatPrice(formData.price),
-            tech: formData.tech.split(',').map(tag => tag.trim()).filter(Boolean)
-        };
-
-        let result;
-        if (editMode) {
-            result = await updateTemplate(editingId, payload);
-        } else {
-            result = await addTemplate(payload);
-        }
-
-        setLoading(false);
-        if (result.success) {
-            alert(editMode ? "Product updated successfully!" : "Product added successfully!");
-            handleCancelEdit(); // Reset form
-        } else {
-            alert(`Error saving template: ${result.message}`);
-        }
-    };
-
-    if (!session) {
+    if (!session || !isAdmin) {
         return (
             <div className="page-container container flex-center">
                 <form onSubmit={handleLogin} className="glass-panel login-form">
                     <h2 className="mb-4 text-center">{t('admin.login')}</h2>
+
+                    {session && !isAdmin && (
+                        <div className="mb-4 text-red-500 text-center bg-red-500/10 p-2 rounded">
+                            Access Denied for {session.user.email}
+                            <button onClick={logout} className="text-sm underline ml-2 block mx-auto mt-1">
+                                Logout
+                            </button>
+                        </div>
+                    )}
+
                     <input
                         type="email"
                         value={email}

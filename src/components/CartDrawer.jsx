@@ -12,7 +12,7 @@ import './CartDrawer.css';
 const CartDrawer = () => {
     const { cartItems, isCartOpen, toggleCart, removeFromCart, clearCart, cartTotal } = useCart();
     const { t } = useLanguage();
-    const { clientUser, loginClient } = useAuth();
+    const { clientUser, loginClient, signUpClient } = useAuth();
     const [paymentStep, setPaymentStep] = useState('cart'); // 'cart', 'auth', 'payment', 'processing', 'success'
 
     // Stripe State
@@ -23,6 +23,8 @@ const CartDrawer = () => {
     const [authMode, setAuthMode] = useState('login');
     const [authEmail, setAuthEmail] = useState('');
     const [authPassword, setAuthPassword] = useState('');
+    const [authError, setAuthError] = useState(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
 
     const navigate = useNavigate();
 
@@ -72,11 +74,25 @@ const CartDrawer = () => {
         }
     };
 
-    const handleAuthSubmit = (e) => {
+    const handleAuthSubmit = async (e) => {
         e.preventDefault();
-        // Mock Login/Signup
-        loginClient(authEmail);
-        setPaymentStep('payment');
+        setAuthError(null);
+        setIsAuthLoading(true);
+
+        try {
+            if (authMode === 'login') {
+                await loginClient(authEmail, authPassword);
+            } else {
+                await signUpClient(authEmail, authPassword);
+            }
+            // If successful, move to payment
+            setPaymentStep('payment');
+        } catch (err) {
+            console.error(err);
+            setAuthError(err.message || "Authentication failed");
+        } finally {
+            setIsAuthLoading(false);
+        }
     };
 
     const handlePaymentSuccess = () => {
@@ -153,6 +169,11 @@ const CartDrawer = () => {
                             {authMode === 'login' ? 'Connectez-vous pour finaliser votre achat.' : 'Créez un compte pour accéder à vos téléchargements.'}
                         </p>
                         <form onSubmit={handleAuthSubmit}>
+                            {authError && (
+                                <div className="mb-4 text-red-500 text-sm bg-red-500/10 p-2 rounded">
+                                    {authError}
+                                </div>
+                            )}
                             <div className="form-group mb-4">
                                 <label>Email</label>
                                 <input
@@ -175,8 +196,8 @@ const CartDrawer = () => {
                                     required
                                 />
                             </div>
-                            <button className="cta-primary w-full mb-4" style={{ justifyContent: 'center', width: '100%' }}>
-                                {authMode === 'login' ? 'SE CONNECTER & PAYER' : 'S\'INSCRIRE & PAYER'}
+                            <button disabled={isAuthLoading} className="cta-primary w-full mb-4" style={{ justifyContent: 'center', width: '100%' }}>
+                                {isAuthLoading ? 'CHARGEMENT...' : (authMode === 'login' ? 'SE CONNECTER & PAYER' : 'S\'INSCRIRE & PAYER')}
                             </button>
                         </form>
                         <div className="text-center">

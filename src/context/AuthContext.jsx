@@ -4,31 +4,43 @@ import { supabase } from '../supabase';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    // Unified Auth State
     const [session, setSession] = useState(null);
-    const [clientUser, setClientUser] = useState(null); // Mock client session
+    const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // ... (Supabase session logic for Admin) ...
+        // Initial Session Check
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            // Check for saved client session
-            const storedClient = localStorage.getItem('clientUser');
-            if (storedClient) setClientUser(JSON.parse(storedClient));
+            checkAdmin(session);
             setLoading(false);
         });
 
+        // Listen for changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            checkAdmin(session);
+            setLoading(false);
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
+    const checkAdmin = (session) => {
+        // Simple Admin Check: In detailed apps, use Public Profile table or App Metadata.
+        // For MVP: Check email.
+        if (session?.user?.email === 'admin@mido.com') { // REPLACE with actual admin email if known, or use metadata
+            setIsAdmin(true);
+        } else {
+            setIsAdmin(false);
+        }
+    };
+
+    // Generic Login (Used by Admin & Client)
     const login = async (email, password) => {
-        // ... (Admin login) ...
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -36,30 +48,42 @@ export const AuthProvider = ({ children }) => {
 
         if (error) {
             console.error("Login Error:", error.message);
-            return false;
+            throw error;
         }
-        return true;
+        return data; // { session, user }
+    };
+
+    const signUpClient = async (email, password) => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                // Disable email confirmation requirement in Supabase Dashboard for this to allow instant login
+                // Or handle "Check Email" flow
+            }
+        });
+
+        if (error) {
+            console.error("SignUp Error:", error.message);
+            throw error;
+        }
+        return data;
     };
 
     const logout = async () => {
         await supabase.auth.signOut();
-    };
-
-    // Client Mock Auth
-    const loginClient = (email) => {
-        const user = { email, role: 'client', id: 'client-123' };
-        setClientUser(user);
-        localStorage.setItem('clientUser', JSON.stringify(user));
-        return true;
-    };
-
-    const logoutClient = () => {
-        setClientUser(null);
+        setSession(null);
+        setIsAdmin(false);
+        // Clear local storage if we stored anything extra
         localStorage.removeItem('clientUser');
     };
 
+    // Alias for backward compatibility (optional) or clarity
+    const loginClient = login;
+    const clientUser = session?.user || null; // Now clientUser IS the session user
+
     return (
-        <AuthContext.Provider value={{ session, login, logout, clientUser, loginClient, logoutClient, loading }}>
+        <AuthContext.Provider value={{ session, isAdmin, login, logout, clientUser, loginClient, signUpClient, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );
