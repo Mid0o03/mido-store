@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../supabase';
+import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
@@ -39,6 +41,7 @@ const StorePage = () => {
     const { templates, incrementViews } = useData();
     const { t } = useLanguage();
     const { addToCart } = useCart(); // Use Cart Context
+    const { clientUser } = useAuth(); // Get current logged in client
     const [activeCategory, setActiveCategory] = useState("All");
     const [activeSubCategory, setActiveSubCategory] = useState("All");
     const [addedItems, setAddedItems] = useState({});
@@ -48,8 +51,35 @@ const StorePage = () => {
     const [sortBy, setSortBy] = useState('newest'); // 'popular', 'newest', 'price-asc', 'price-desc'
     const [isSortOpen, setIsSortOpen] = useState(false);
 
+    // Store purchased template IDs
+    const [purchasedIds, setPurchasedIds] = useState(new Set());
+
+    // Fetch purchases on mount or user change
+    useEffect(() => {
+        if (clientUser) {
+            const fetchPurchases = async () => {
+                const { data } = await supabase
+                    .from('purchases')
+                    .select('template_id')
+                    .eq('user_id', clientUser.id);
+
+                if (data) {
+                    const ids = new Set(data.map(p => p.template_id));
+                    setPurchasedIds(ids);
+                }
+            };
+            fetchPurchases();
+        } else {
+            setPurchasedIds(new Set());
+        }
+    }, [clientUser]);
+
     const handleAddToCart = (e, item) => {
         e.stopPropagation();
+        if (purchasedIds.has(item.id)) {
+            alert("You already own this item! Check your dashboard.");
+            return;
+        }
         addToCart(item); // Add to real cart
         setAddedItems(prev => ({ ...prev, [item.id]: true }));
         setTimeout(() => {
@@ -199,64 +229,72 @@ const StorePage = () => {
 
             <div className="store-grid">
                 {filteredTemplates.length > 0 ? (
-                    filteredTemplates.map((item) => (
-                        <div key={item.id} className="store-card glass-panel" onClick={() => handleViewDetails(item)}>
-                            <div className="card-preview">
-                                <div className="preview-placeholder" style={{ backgroundImage: item.image_url ? `url(${item.image_url})` : 'none' }}></div>
-                                <div className="card-overlay">
-                                    <button className="view-btn">{t('store.view_details') || "View Details"}</button>
-                                    {item.demo_url && (
-                                        <a
-                                            href={item.demo_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="demo-btn-card"
-                                            onClick={(e) => e.stopPropagation()}
-                                            title="Live Preview"
-                                        >
-                                            <Eye size={20} />
-                                        </a>
-                                    )}
-                                </div>
+                    filteredTemplates.map((item) => {
+                        const isOwned = purchasedIds.has(item.id);
+                        return (
+                            <div key={item.id} className="store-card glass-panel" onClick={() => handleViewDetails(item)}>
+                                <div className="card-preview">
+                                    <div className="preview-placeholder" style={{ backgroundImage: item.image_url ? `url(${item.image_url})` : 'none' }}></div>
+                                    <div className="card-overlay">
+                                        <button className="view-btn">{t('store.view_details') || "View Details"}</button>
+                                        {item.demo_url && (
+                                            <a
+                                                href={item.demo_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="demo-btn-card"
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="Live Preview"
+                                            >
+                                                <Eye size={20} />
+                                            </a>
+                                        )}
+                                    </div>
 
-                                <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
-                                    {item.price === "Free" || item.price === "$0" ? 'Free' : 'Premium'}
-                                </span>
-                            </div>
-                            <div className="card-content">
-                                <div className="card-header">
-                                    <h3 className="card-title">{item.title}</h3>
-                                    <div className="card-badges">
-                                        <span className="badge category">{item.category}</span>
-                                        {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
+                                    <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
+                                        {item.price === "Free" || item.price === "$0" ? 'Free' : 'Premium'}
+                                    </span>
+                                </div>
+                                <div className="card-content">
+                                    <div className="card-header">
+                                        <h3 className="card-title">{item.title}</h3>
+                                        <div className="card-badges">
+                                            <span className="badge category">{item.category}</span>
+                                            {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
+                                        </div>
+                                    </div>
+
+                                    <div className="card-tags">
+                                        {item.tech && item.tech.slice(0, 3).map((tag, i) => (
+                                            <span key={i} className="tech-tag font-mono">{tag}</span>
+                                        ))}
+                                    </div>
+
+                                    <div className="card-divider"></div>
+
+                                    <div className="card-footer">
+                                        <span className="card-price font-mono">{item.price}</span>
+                                        <button
+                                            className={`add-cart-btn ${addedItems[item.id] ? 'added' : ''} ${isOwned ? 'opacity-50 cursor-not-allowed bg-green-900/40 border-green-500/50' : ''}`}
+                                            aria-label={isOwned ? "Already Owned" : "Add to cart"}
+                                            onClick={(e) => handleAddToCart(e, item)}
+                                            disabled={isOwned}
+                                            title={isOwned ? "Already Purchased" : "Add to Cart"}
+                                            style={isOwned ? { borderColor: 'var(--accent-color)', color: 'var(--accent-color)' } : {}}
+                                        >
+                                            {isOwned ? (
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>OWNED</span>
+                                            ) : addedItems[item.id] ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div className="card-tags">
-                                    {item.tech && item.tech.slice(0, 3).map((tag, i) => (
-                                        <span key={i} className="tech-tag font-mono">{tag}</span>
-                                    ))}
-                                </div>
-
-                                <div className="card-divider"></div>
-
-                                <div className="card-footer">
-                                    <span className="card-price font-mono">{item.price}</span>
-                                    <button
-                                        className={`add-cart-btn ${addedItems[item.id] ? 'added' : ''}`}
-                                        aria-label="Add to cart"
-                                        onClick={(e) => handleAddToCart(e, item)}
-                                    >
-                                        {addedItems[item.id] ? (
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
-                                        )}
-                                    </button>
-                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
                     <div className="no-results font-mono">{t('store.coming_soon')}</div>
                 )}
@@ -302,10 +340,16 @@ const StorePage = () => {
 
                                 <div className="modal-actions">
                                     <button
-                                        className={`modal-buy-btn ${addedItems[selectedItem.id] ? 'added' : ''}`}
+                                        className={`modal-buy-btn ${addedItems[selectedItem.id] ? 'added' : ''} ${purchasedIds.has(selectedItem.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={(e) => handleAddToCart(e, selectedItem)}
+                                        disabled={purchasedIds.has(selectedItem.id)}
                                     >
-                                        {addedItems[selectedItem.id] ? (
+                                        {purchasedIds.has(selectedItem.id) ? (
+                                            <>
+                                                <span>Already Owned</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                            </>
+                                        ) : addedItems[selectedItem.id] ? (
                                             <>
                                                 <span>Added to Cart</span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
