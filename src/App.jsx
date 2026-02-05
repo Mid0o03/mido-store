@@ -77,30 +77,57 @@ function App() {
               <div className="App">
                 <ScrollToTop />
 
-                <>
-                  <Header />
-                  <CartDrawer />
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/store" element={<StorePage />} />
-                    <Route path="/lab" element={<LabPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
+                {isAdminSubdomain ? (
+                  /* --- ADMIN APP --- */
+                  <div className="admin-subdomain-wrapper">
+                    <Routes>
+                      <Route path="/" element={<AdminPage />} />
+                      {/* Fallback for any other path on admin subdomain -> go to root */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </div>
+                ) : (
+                  /* --- PUBLIC / CLIENT APP --- */
+                  <>
+                    <Header />
+                    <CartDrawer />
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/store" element={<StorePage />} />
+                      <Route path="/lab" element={<LabPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
 
-                    {/* Allow Admin Access directly for now to fix black screen */}
-                    <Route path="/admin" element={<AdminPage />} />
+                      {/* Admin route redirect if accessed from main domain */}
+                      <Route path="/admin" element={
+                        <div className="page-container container flex-center" style={{ minHeight: '60vh', textAlign: 'center' }}>
+                          <div className="glass-panel" style={{ padding: '3rem' }}>
+                            <h2 className="mb-4">Espace Administration</h2>
+                            <p className="mb-6 text-secondary">
+                              L'interface d'administration est maintenant sur un sous-domaine dédié.
+                            </p>
+                            <a
+                              href={`//admin.${hostname.replace('www.', '')}`}
+                              className="cta-primary"
+                            >
+                              Aller sur admin.{hostname.replace('www.', '')}
+                            </a>
+                          </div>
+                        </div>
+                      } />
 
-                    <Route path="/client-login" element={<ClientLoginPage />} />
-                    <Route path="/client" element={
-                      <ProtectedRoute>
-                        <ClientDashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/mentions-legales" element={<LegalPage />} />
-                    <Route path="/confidentialite" element={<LegalPage />} />
-                    <Route path="/cgu" element={<LegalPage />} />
-                  </Routes>
-                  <Footer />
-                </>
+                      <Route path="/client-login" element={<ClientLoginPage />} />
+                      <Route path="/client" element={
+                        <ProtectedRoute>
+                          <ClientDashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/mentions-legales" element={<LegalPage />} />
+                      <Route path="/confidentialite" element={<LegalPage />} />
+                      <Route path="/cgu" element={<LegalPage />} />
+                    </Routes>
+                    <Footer />
+                  </>
+                )}
 
               </div>
             </CartProvider>
