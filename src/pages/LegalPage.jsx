@@ -16,13 +16,13 @@ const LegalPage = () => {
                         <div className="legal-content">
                             <h3>1. Éditeur du Site</h3>
                             <p>
-                                <strong>Dénomination sociale :</strong> [VOTRE ENTREPRISE] (ex: Mido Agency)<br />
-                                <strong>Forme juridique :</strong> [STATUT] (ex: Auto-entrepreneur, SAS, SARL)<br />
-                                <strong>Siège social :</strong> [VOTRE ADRESSE]<br />
-                                <strong>SIRET :</strong> [VOTRE NUMERO SIRET]<br />
-                                <strong>TVA Intracommunautaire :</strong> [NUMERO TVA]<br />
-                                <strong>Directeur de la publication :</strong> [VOTRE NOM]<br />
-                                <strong>Contact :</strong> contact@midodev.fr
+                                <strong>Dénomination sociale :</strong> MIDO<br />
+                                <strong>Forme juridique :</strong> Auto-entrepreneur<br />
+                                <strong>Siège social :</strong> 22 rue villa guillaume, 91310<br />
+                                <strong>SIRET :</strong> 94389741300010<br />
+                                <strong>TVA Intracommunautaire :</strong> TVA non applicable, art. 293 B du CGI<br />
+                                <strong>Directeur de la publication :</strong> Mael Jerome<br />
+                                <strong>Contact :</strong> midodev.fr@gmail.com
                             </p>
 
                             <h3>2. Hébergement</h3>

@@ -27,7 +27,7 @@ const ClientLoginPage = () => {
         try {
             if (isResetMode) {
                 await resetPassword(email);
-                setSuccessMsg("Email de réinitialisation envoyé ! Vérifiez votre boîte mail.");
+                setSuccessMsg(t('auth.success_reset'));
                 return;
             }
 
@@ -36,12 +36,12 @@ const ClientLoginPage = () => {
                 navigate('/client');
             } else {
                 await signUpClient(email, password);
-                setSuccessMsg("Compte créé avec succès ! Vous êtes connecté.");
+                setSuccessMsg(t('auth.success_signup'));
                 setTimeout(() => navigate('/client'), 1500);
             }
         } catch (err) {
             console.error(err);
-            setError(err.message || 'Une erreur est survenue.');
+            setError(err.message || t('auth.error_generic'));
         } finally {
             setIsLoading(false);
         }
@@ -70,7 +70,7 @@ const ClientLoginPage = () => {
                                     transition: 'all 0.3s ease'
                                 }}
                             >
-                                CONNEXION
+                                {t('auth.login_tab')}
                             </button>
                             <button
                                 onClick={() => { setIsLogin(false); setError(null); }}
@@ -84,16 +84,16 @@ const ClientLoginPage = () => {
                                     transition: 'all 0.3s ease'
                                 }}
                             >
-                                INSCRIPTION
+                                {t('auth.signup_tab')}
                             </button>
                         </div>
 
                         <div style={{ padding: '3rem 2.5rem' }}>
                             <h2 className="mb-2 text-center" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
-                                {isLogin ? 'Bon retour parmi nous' : 'Rejoignez Mido'}
+                                {isLogin ? t('auth.login_title') : t('auth.signup_title')}
                             </h2>
                             <p className="text-center mb-8" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                {isLogin ? 'Accédez à votre espace et vos téléchargements' : 'Créez un compte pour gérer vos achats'}
+                                {isLogin ? t('auth.login_desc') : t('auth.signup_desc')}
                             </p>
 
                             <form onSubmit={handleSubmit}>
@@ -109,7 +109,7 @@ const ClientLoginPage = () => {
                                 )}
 
                                 <div className="form-group mb-5">
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>EMAIL</label>
+                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{t('auth.email_label')}</label>
                                     <input
                                         type="email"
                                         value={email}
@@ -129,7 +129,7 @@ const ClientLoginPage = () => {
                                     />
                                 </div>
                                 <div className="form-group mb-8">
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>MOT DE PASSE</label>
+                                    <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{t('auth.password_label')}</label>
                                     <input
                                         type="password"
                                         value={password}
@@ -159,10 +159,17 @@ const ClientLoginPage = () => {
                                         letterSpacing: '0.05em',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.5rem'
+                                        gap: '0.5rem',
+                                        background: 'var(--accent-color)', // Added explicit background
+                                        color: 'black', // Added contrast text
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: '700',
+                                        marginTop: '1rem'
                                     }}
                                 >
-                                    {isLoading ? 'TRAITEMENT...' : (isLogin ? 'SE CONNECTER' : 'CRÉER UN COMPTE')}
+                                    {isLoading ? t('auth.processing') : (isLogin ? t('auth.submit_login') : t('auth.submit_signup'))}
                                     {!isLoading && <ArrowRight size={20} />}
                                 </button>
 
@@ -175,7 +182,7 @@ const ClientLoginPage = () => {
                                             onMouseOver={e => e.target.style.color = 'white'}
                                             onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}
                                         >
-                                            Mot de passe oublié ?
+                                            {t('auth.forgot_password')}
                                         </button>
                                     </div>
                                 )}
@@ -186,10 +193,10 @@ const ClientLoginPage = () => {
                     // RESET PASSWORD VIEW
                     <div style={{ padding: '3rem 2.5rem' }}>
                         <h2 className="mb-2 text-center" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
-                            Réinitialisation
+                            {t('auth.reset_title')}
                         </h2>
                         <p className="text-center mb-8" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                            Entrez votre email pour recevoir un lien de réinitialisation.
+                            {t('auth.reset_desc')}
                         </p>
 
                         <form onSubmit={handleSubmit}>
@@ -234,9 +241,15 @@ const ClientLoginPage = () => {
                                     padding: '1rem',
                                     fontSize: '1rem',
                                     letterSpacing: '0.05em',
+                                    background: 'var(--accent-color)', // Added explicit background
+                                    color: 'black', // Added contrast text
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: '700'
                                 }}
                             >
-                                {isLoading ? 'ENVOI...' : 'ENVOYER LE LIEN'}
+                                {isLoading ? t('auth.reset_sending') : t('auth.reset_submit')}
                             </button>
 
                             <div className="text-center mt-6">
@@ -247,7 +260,7 @@ const ClientLoginPage = () => {
                                     onMouseOver={e => e.target.style.color = 'white'}
                                     onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}
                                 >
-                                    ← Retour à la connexion
+                                    {t('auth.back_to_login')}
                                 </button>
                             </div>
                         </form>

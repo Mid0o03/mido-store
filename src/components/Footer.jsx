@@ -11,9 +11,8 @@ const Footer = () => {
             <div className="container footer-container">
                 <span className="copyright">© 2024 MIDO. {t('footer.rights')}</span>
                 <div className="social-links">
-                    <a href="#">TWITTER</a>
+                    <a href="https://www.maeljerome.dev" target="_blank" rel="noopener noreferrer">PORTFOLIO</a>
                     <a href="#">LINKEDIN</a>
-                    <a href="#">INSTAGRAM</a>
                 </div>
                 <div className="footer-legal">
                     <Link to="/mentions-legales">{t('legal.mentions.link')}</Link>

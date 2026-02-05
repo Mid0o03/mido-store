@@ -139,12 +139,12 @@ const ClientDashboard = () => {
                 <div className="flex-center" style={{ minHeight: '200px' }}>Chargement...</div>
             ) : myAssets.length === 0 ? (
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Aucun achat trouvé</h3>
+                    <h3 style={{ marginBottom: '1rem' }}>{t('client.modal.no_purchase')}</h3>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                        Vos achats apparaîtront ici une fois le paiement validé.
+                        {t('client.modal.no_purchase_desc')}
                     </p>
                     <button className="cta-primary" onClick={() => navigate('/store')}>
-                        Aller à la boutique
+                        {t('client.modal.go_store')}
                     </button>
                     {/* Debug Info for Dev */}
                     <div style={{ marginTop: '2rem', fontSize: '0.8rem', opacity: 0.5 }}>
@@ -197,25 +197,26 @@ const ClientDashboard = () => {
                         </div>
 
                         <div style={{ marginBottom: '2rem' }}>
-                            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Documentation & Access</h3>
+                            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>{t('client.modal.title')}</h3>
                             <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                                Thank you for your purchase! You can download the source code ZIP directly below.
-                                If you need support, please contact support@midodev.fr with your Purchase ID: <span className="font-mono text-accent">{viewingCode.purchaseId}</span>.
+                                {t('client.modal.desc')}
+                                <br />
+                                {t('client.modal.support')} <span className="font-mono text-accent">{viewingCode.purchaseId}</span>.
                             </p>
                         </div>
 
                         {viewingCode.demo_url && (
                             <div style={{ marginBottom: '2rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#888' }}>Live Demo Link:</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#888' }}>{t('client.modal.demo_label')}</label>
                                 <a href={viewingCode.demo_url} target="_blank" rel="noopener" style={{ color: 'var(--accent-color)' }}>{viewingCode.demo_url}</a>
                             </div>
                         )}
 
                         <div style={{ marginTop: '1.5rem', textAlign: 'right', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button className="filter-btn" onClick={() => setViewingCode(null)}>Close</button>
+                            <button className="filter-btn" onClick={() => setViewingCode(null)}>{t('client.modal.close')}</button>
                             <button className="cta-primary" onClick={() => handleDownload(viewingCode)}>
                                 <Download size={18} style={{ marginRight: '0.5rem' }} />
-                                Download .ZIP
+                                {t('client.modal.download_btn')}
                             </button>
                         </div>
                     </div>

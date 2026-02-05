@@ -44,6 +44,7 @@ export const translations = {
             rights: 'TOUS DROITS RÉSERVÉS.'
         },
         store: {
+            title_prefix: 'LE',
             title_highlight: 'STORE',
             subtitle: 'ASSETS PREMIUM POUR CRÉATEURS',
             filters: { all: 'TOUT', ui: 'UI KITS', templates: 'TEMPLATES', args: 'AUGMENTED REALITY' },
@@ -55,14 +56,57 @@ export const translations = {
                 newest: 'Nouveautés ✨',
                 price_asc: 'Prix: Croissant',
                 price_desc: 'Prix: Décroissant'
-            }
+            },
+            view_details: 'Voir Détails',
+            live_preview: 'Aperçu Live',
+            free: 'Gratuit',
+            premium: 'Premium',
+            owned: 'ACQUIS',
+            add_to_cart: 'Ajouter au panier',
+            added_to_cart: 'Ajouté !',
+            already_owned: 'Déjà acquis',
+            technologies: 'Technologies :',
+            description_placeholder: 'Description pour cet élément.'
+        },
+        auth: {
+            login_tab: 'CONNEXION',
+            signup_tab: 'INSCRIPTION',
+            login_title: 'Bon retour parmi nous',
+            signup_title: 'Rejoignez Mido',
+            login_desc: 'Accédez à votre espace et vos téléchargements',
+            signup_desc: 'Créez un compte pour gérer vos achats',
+            email_label: 'EMAIL',
+            password_label: 'MOT DE PASSE',
+            forgot_password: 'Mot de passe oublié ?',
+            submit_login: 'SE CONNECTER',
+            submit_signup: 'CRÉER UN COMPTE',
+            processing: 'TRAITEMENT...',
+            reset_title: 'Réinitialisation',
+            reset_desc: 'Entrez votre email pour recevoir un lien de réinitialisation.',
+            reset_submit: 'ENVOYER LE LIEN',
+            reset_sending: 'ENVOI...',
+            back_to_login: '← Retour à la connexion',
+            success_reset: 'Email de réinitialisation envoyé !',
+            success_signup: 'Compte créé avec succès !',
+            error_generic: 'Une erreur est survenue.'
         },
         cart: {
             title: 'VOTRE PANIER',
             total: 'TOTAL',
             checkout: 'PAYER',
             empty: 'Votre panier est vide.',
-            remove: 'Retirer'
+            remove: 'Retirer',
+            secure_payment: 'Paiement Sécurisé',
+            success_title: 'Paiement Réussi !',
+            success_desc: 'Merci pour votre achat.',
+            auth_login_desc: 'Connectez-vous pour finaliser votre achat.',
+            auth_signup_desc: 'Créez un compte pour accéder à vos téléchargements.',
+            pay_btn: 'PAYER',
+            signup_pay_btn: 'S\'INSCRIRE & PAYER',
+            back_to_cart: '← Retour au panier',
+            back: 'Retour',
+            init_secure: 'Initialisation sécurisée...',
+            stripe_config_warning: '(Avez-vous configuré les clés Stripe dans .env ?)'
         },
         client: {
             title_prefix: 'ESPACE',
@@ -72,7 +116,18 @@ export const translations = {
             my_assets: 'Mes Assets',
             download: 'Télécharger',
             purchased: 'Acheté le',
-            documentation: 'Documentation'
+            documentation: 'Documentation',
+            modal: {
+                title: 'Documentation & Accès',
+                desc: 'Merci pour votre achat ! Vous pouvez télécharger le code source ZIP ci-dessous.',
+                support: 'Besoin d\'aide ? Contactez support@midodev.fr avec votre ID :',
+                demo_label: 'Lien Demo Live :',
+                download_btn: 'Télécharger .ZIP',
+                close: 'Fermer',
+                no_purchase: 'Aucun achat trouvé',
+                no_purchase_desc: 'Vos achats apparaîtront ici une fois le paiement validé.',
+                go_store: 'Aller à la boutique'
+            }
         },
         lab: {
             title_prefix: 'LE',
@@ -145,6 +200,7 @@ export const translations = {
             rights: 'ALL RIGHTS RESERVED.'
         },
         store: {
+            title_prefix: 'THE',
             title_highlight: 'STORE',
             subtitle: 'PREMIUM ASSETS FOR CREATORS',
             filters: { all: 'ALL', ui: 'UI KITS', templates: 'TEMPLATES', args: 'AUGMENTED REALITY' },
@@ -156,14 +212,57 @@ export const translations = {
                 newest: 'Newest ✨',
                 price_asc: 'Price: Low to High',
                 price_desc: 'Price: High to Low'
-            }
+            },
+            view_details: 'View Details',
+            live_preview: 'Live Preview',
+            free: 'Free',
+            premium: 'Premium',
+            owned: 'OWNED',
+            add_to_cart: 'Add to Cart',
+            added_to_cart: 'In Cart',
+            already_owned: 'Already Owned',
+            technologies: 'Technologies:',
+            description_placeholder: 'Description placeholder for items.'
+        },
+        auth: {
+            login_tab: 'LOGIN',
+            signup_tab: 'SIGNUP',
+            login_title: 'Welcome Back',
+            signup_title: 'Join Mido',
+            login_desc: 'Access your dashboard and downloads',
+            signup_desc: 'Create an account to manage purchases',
+            email_label: 'EMAIL',
+            password_label: 'PASSWORD',
+            forgot_password: 'Forgot Password?',
+            submit_login: 'LOG IN',
+            submit_signup: 'CREATE ACCOUNT',
+            processing: 'PROCESSING...',
+            reset_title: 'Reset Password',
+            reset_desc: 'Enter your email to receive a reset link.',
+            reset_submit: 'SEND LINK',
+            reset_sending: 'SENDING...',
+            back_to_login: '← Back to Login',
+            success_reset: 'Reset email sent!',
+            success_signup: 'Account created successfully!',
+            error_generic: 'An error occurred.'
         },
         cart: {
             title: 'YOUR CART',
             total: 'TOTAL',
             checkout: 'CHECKOUT',
             empty: 'Your cart is empty.',
-            remove: 'Remove'
+            remove: 'Remove',
+            secure_payment: 'Secure Payment',
+            success_title: 'Payment Successful!',
+            success_desc: 'Thank you for your purchase.',
+            auth_login_desc: 'Log in to complete your purchase.',
+            auth_signup_desc: 'Create an account to access your downloads.',
+            pay_btn: 'PAY',
+            signup_pay_btn: 'SIGNUP & PAY',
+            back_to_cart: '← Back to Cart',
+            back: 'Back',
+            init_secure: 'Secure initialization...',
+            stripe_config_warning: '(Have you configured Stripe keys in .env?)'
         },
         client: {
             title_prefix: 'CLIENT',
@@ -173,7 +272,18 @@ export const translations = {
             my_assets: 'My Assets',
             download: 'Download',
             purchased: 'Purchased on',
-            documentation: 'Documentation'
+            documentation: 'Documentation',
+            modal: {
+                title: 'Documentation & Access',
+                desc: 'Thank you for your purchase! You can download the source code ZIP directly below.',
+                support: 'Need support? Contact support@midodev.fr with Purchase ID:',
+                demo_label: 'Live Demo Link:',
+                download_btn: 'Download .ZIP',
+                close: 'Close',
+                no_purchase: 'No purchases found',
+                no_purchase_desc: 'Your purchases will appear here once payment is validated.',
+                go_store: 'Go to Store'
+            }
         },
         lab: {
             title_prefix: 'THE',

@@ -236,7 +236,7 @@ const StorePage = () => {
                                 <div className="card-preview">
                                     <div className="preview-placeholder" style={{ backgroundImage: item.image_url ? `url(${item.image_url})` : 'none' }}></div>
                                     <div className="card-overlay">
-                                        <button className="view-btn">{t('store.view_details') || "View Details"}</button>
+                                        <button className="view-btn">{t('store.view_details')}</button>
                                         {item.demo_url && (
                                             <a
                                                 href={item.demo_url}
@@ -244,7 +244,7 @@ const StorePage = () => {
                                                 rel="noopener noreferrer"
                                                 className="demo-btn-card"
                                                 onClick={(e) => e.stopPropagation()}
-                                                title="Live Preview"
+                                                title={t('store.live_preview')}
                                             >
                                                 <Eye size={20} />
                                             </a>
@@ -252,7 +252,7 @@ const StorePage = () => {
                                     </div>
 
                                     <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
-                                        {item.price === "Free" || item.price === "$0" ? 'Free' : 'Premium'}
+                                        {item.price === "Free" || item.price === "$0" ? t('store.free') : t('store.premium')}
                                     </span>
                                 </div>
                                 <div className="card-content">
@@ -276,14 +276,14 @@ const StorePage = () => {
                                         <span className="card-price font-mono">{item.price}</span>
                                         <button
                                             className={`add-cart-btn ${addedItems[item.id] ? 'added' : ''} ${isOwned ? 'opacity-50 cursor-not-allowed bg-green-900/40 border-green-500/50' : ''}`}
-                                            aria-label={isOwned ? "Already Owned" : "Add to cart"}
+                                            aria-label={isOwned ? t('store.already_owned') : t('store.add_to_cart')}
                                             onClick={(e) => handleAddToCart(e, item)}
                                             disabled={isOwned}
-                                            title={isOwned ? "Already Purchased" : "Add to Cart"}
+                                            title={isOwned ? t('store.already_owned') : t('store.add_to_cart')}
                                             style={isOwned ? { borderColor: 'var(--accent-color)', color: 'var(--accent-color)' } : {}}
                                         >
                                             {isOwned ? (
-                                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>OWNED</span>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{t('store.owned')}</span>
                                             ) : addedItems[item.id] ? (
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                                             ) : (
@@ -326,11 +326,11 @@ const StorePage = () => {
                                 </div>
 
                                 <div className="modal-description">
-                                    <p>Description placeholder for {selectedItem.title}. This template is optimized for high performance and includes modern UI components.</p>
+                                    <p>{selectedItem.description || t('store.description_placeholder')}</p>
                                 </div>
 
                                 <div className="modal-tags">
-                                    <span className="tag-label font-mono">Technologies:</span>
+                                    <span className="tag-label font-mono">{t('store.technologies')}</span>
                                     <div className="tags-list">
                                         {selectedItem.tech && selectedItem.tech.map((tag, i) => (
                                             <span key={i} className="tech-tag font-mono">{tag}</span>
@@ -344,22 +344,10 @@ const StorePage = () => {
                                         onClick={(e) => handleAddToCart(e, selectedItem)}
                                         disabled={purchasedIds.has(selectedItem.id)}
                                     >
-                                        {purchasedIds.has(selectedItem.id) ? (
-                                            <>
-                                                <span>Already Owned</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                            </>
-                                        ) : addedItems[selectedItem.id] ? (
-                                            <>
-                                                <span>Added to Cart</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span>Add to Cart</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
-                                            </>
-                                        )}
+                                        <>
+                                            <span>{purchasedIds.has(selectedItem.id) ? t('store.already_owned') : addedItems[selectedItem.id] ? t('store.added_to_cart') : t('store.add_to_cart')}</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                                        </>
                                     </button>
 
                                     {selectedItem.demo_url && (
@@ -384,7 +372,7 @@ const StorePage = () => {
                                             onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'white'; }}
                                         >
                                             <Eye size={20} />
-                                            Live Preview
+                                            {t('store.live_preview')}
                                         </a>
                                     )}
                                 </div>

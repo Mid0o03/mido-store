@@ -175,8 +175,8 @@ const CartDrawer = () => {
                 <div className="cart-header">
                     <h2>
                         {paymentStep === 'cart' && t('cart.title')}
-                        {paymentStep === 'auth' && (authMode === 'login' ? 'Connexion' : 'Inscription')}
-                        {paymentStep === 'payment' && 'Paiement Sécurisé'}
+                        {paymentStep === 'auth' && (authMode === 'login' ? t('auth.login_tab') : t('auth.signup_tab'))}
+                        {paymentStep === 'payment' && t('cart.secure_payment')}
                     </h2>
                     <button className="close-btn" onClick={toggleCart}>
                         <X size={24} color="white" />
@@ -188,8 +188,8 @@ const CartDrawer = () => {
                         <div className="success-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#39FF14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
-                        <h3>Paiement Réussi !</h3>
-                        <p>Merci pour votre achat.</p>
+                        <h3>{t('cart.success_title')}</h3>
+                        <p>{t('cart.success_desc')}</p>
                     </div>
                 ) : paymentStep === 'auth' ? (
                     <div className="payment-form" style={{ padding: '0 1rem' }}>
@@ -207,7 +207,7 @@ const CartDrawer = () => {
                                     transition: 'all 0.3s ease'
                                 }}
                             >
-                                CONNEXION
+                                {t('auth.login_tab')}
                             </button>
                             <button
                                 onClick={() => { setAuthMode('signup'); setAuthError(null); }}
@@ -221,12 +221,12 @@ const CartDrawer = () => {
                                     transition: 'all 0.3s ease'
                                 }}
                             >
-                                INSCRIPTION
+                                {t('auth.signup_tab')}
                             </button>
                         </div>
 
                         <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
-                            {authMode === 'login' ? 'Connectez-vous pour finaliser votre achat.' : 'Créez un compte pour accéder à vos téléchargements.'}
+                            {authMode === 'login' ? t('cart.auth_login_desc') : t('cart.auth_signup_desc')}
                         </p>
 
                         <form onSubmit={handleAuthSubmit}>
@@ -236,7 +236,7 @@ const CartDrawer = () => {
                                 </div>
                             )}
                             <div className="form-group mb-4">
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>EMAIL</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('auth.email_label')}</label>
                                 <input
                                     type="email"
                                     className="admin-input"
@@ -256,7 +256,7 @@ const CartDrawer = () => {
                                 />
                             </div>
                             <div className="form-group mb-6">
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>MOT DE PASSE</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('auth.password_label')}</label>
                                 <input
                                     type="password"
                                     className="admin-input"
@@ -284,7 +284,7 @@ const CartDrawer = () => {
                                     alignItems: 'center',
                                     gap: '0.5rem'
                                 }}>
-                                {isAuthLoading ? 'TRAITEMENT...' : (authMode === 'login' ? 'PAYER' : 'S\'INSCRIRE & PAYER')}
+                                {isAuthLoading ? t('auth.processing') : (authMode === 'login' ? t('cart.pay_btn') : t('cart.signup_pay_btn'))}
                                 {!isAuthLoading && <ArrowRight size={20} />}
                             </button>
                         </form>
@@ -294,7 +294,7 @@ const CartDrawer = () => {
                                 className="text-secondary text-sm mt-4 hover:text-white text-center"
                                 onClick={() => setPaymentStep('cart')}
                             >
-                                &larr; Retour au panier
+                                {t('cart.back_to_cart')}
                             </button>
                         </div>
                     </div>
@@ -304,13 +304,13 @@ const CartDrawer = () => {
                             <div className="error-message" style={{ color: 'red', textAlign: 'center' }}>
                                 <p>{stripeError}</p>
                                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
-                                    (Avez-vous configuré les clés Stripe dans .env ?)
+                                    {t('cart.stripe_config_warning')}
                                 </p>
                                 <button
                                     className="text-secondary text-sm mt-4 hover:text-white"
                                     onClick={handleCancelPayment}
                                 >
-                                    Retour
+                                    {t('cart.back')}
                                 </button>
                             </div>
                         ) : clientSecret ? (
@@ -324,7 +324,7 @@ const CartDrawer = () => {
                         ) : (
                             <div className="loading-spinner" style={{ textAlign: 'center', padding: '2rem' }}>
                                 <div className="spinner"></div>
-                                <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>Initialisation sécurisée...</p>
+                                <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>{t('cart.init_secure')}</p>
                             </div>
                         )}
                     </div>

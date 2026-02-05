@@ -11,9 +11,12 @@ const CATEGORIES = {
 };
 
 const TECH_STACKS = [
-    'React', 'Next.js', 'Vue', 'Tailwind', 'Framer Motion', 'GSAP',
-    'Three.js', 'Supabase', 'Figma', 'TypeScript', 'Node.js',
-    'React Native', 'Expo', 'Swift', 'Kotlin'
+    'React', 'Next.js', 'Vite', 'Vue', 'Nuxt', 'Svelte', 'Angular',
+    'Tailwind', 'Bootstrap', 'Sass', 'Framer Motion', 'GSAP', 'Three.js',
+    'Node.js', 'Express', 'NestJS', 'Python', 'Django', 'Flask', 'Go', 'Rust',
+    'Supabase', 'Firebase', 'PostgreSQL', 'MongoDB', 'Redis', 'GraphQL',
+    'Docker', 'AWS', 'Vercel', 'Stripe',
+    'React Native', 'Expo', 'Flutter', 'Swift', 'Kotlin', 'Figma', 'Adobe XD'
 ];
 
 const AdminPage = () => {
@@ -209,7 +212,7 @@ const AdminPage = () => {
 
         const payload = {
             ...formData,
-            price: formatPrice(formData.price),
+            price: formData.price === 'Free' ? 'Free' : formatPrice(formData.price),
             tech: formData.tech.split(',').map(tag => tag.trim()).filter(Boolean)
         };
 
@@ -405,16 +408,37 @@ const AdminPage = () => {
                         required
                     />
 
-                    <div className="price-input-wrapper">
-                        <input
-                            type="number"
-                            placeholder="Price"
-                            value={formData.price.replace('€', '')}
-                            onChange={e => setFormData({ ...formData, price: e.target.value })}
+                    {/* PRICING TIER */}
+                    <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+                        <select
+                            value={formData.price === 'Free' ? 'Free' : 'Premium'}
+                            onChange={(e) => {
+                                const isFree = e.target.value === 'Free';
+                                setFormData(prev => ({
+                                    ...prev,
+                                    price: isFree ? 'Free' : ''
+                                }));
+                            }}
                             className="admin-input"
-                            required
-                        />
-                        <span className="currency-symbol">€</span>
+                            style={{ width: '150px' }}
+                        >
+                            <option value="Premium">Premium (€)</option>
+                            <option value="Free">Free</option>
+                        </select>
+
+                        {formData.price !== 'Free' && (
+                            <div className="price-input-wrapper" style={{ flex: 1 }}>
+                                <input
+                                    type="number"
+                                    placeholder="Price"
+                                    value={formData.price.replace('€', '')}
+                                    onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                    className="admin-input"
+                                    required={formData.price !== 'Free'}
+                                />
+                                <span className="currency-symbol">€</span>
+                            </div>
+                        )}
                     </div>
 
                     <select

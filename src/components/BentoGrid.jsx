@@ -1,8 +1,10 @@
-import React, { useRef, useLayoutEffect } from 'react';
+import React, { useRef, useLayoutEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useData } from '../context/DataContext';
 import './BentoGrid.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -10,40 +12,27 @@ gsap.registerPlugin(ScrollTrigger);
 const BentoGrid = () => {
     const containerRef = useRef(null);
     const { t } = useLanguage();
+    const { templates } = useData();
+    const navigate = useNavigate();
 
-    // Moved projects inside component to access t()
-    const projects = [
-        {
-            id: 1,
-            title: "NEON REALTY",
-            category: "Real Estate Template",
-            image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=1000",
-            size: "large"
-        },
-        {
-            id: 2,
-            title: t('bento.cards.ecommerce.title') === 'bento.cards.ecommerce.title' ? "CYBER COMMERCE" : t('bento.cards.ecommerce.title'),
-            category: t('bento.cards.ecommerce.desc') === 'bento.cards.ecommerce.desc' ? "E-commerce UI" : t('bento.cards.ecommerce.desc'),
-            image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1000",
-            size: "medium"
-        },
-        {
-            id: 3,
-            title: t('bento.cards.portfolio.title') === 'bento.cards.portfolio.title' ? "ZEN PORTFOLIO" : t('bento.cards.portfolio.title'),
-            category: t('bento.cards.portfolio.desc') === 'bento.cards.portfolio.desc' ? "Personal Brand" : t('bento.cards.portfolio.desc'),
-            image: "https://images.unsplash.com/photo-1517816428104-797678c7cf0c?auto=format&fit=crop&q=80&w=1000",
-            size: "medium"
-        },
-        {
-            id: 4,
-            title: t('bento.cards.saas.title') === 'bento.cards.saas.title' ? "MIDO DASHBOARD" : t('bento.cards.saas.title'),
-            category: t('bento.cards.saas.desc') === 'bento.cards.saas.desc' ? "SaaS Interface" : t('bento.cards.saas.desc'),
-            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000",
-            size: "wide"
-        }
-    ];
+    // Use top 4 published templates
+    const projects = useMemo(() => {
+        return templates
+            .filter(t => t.status !== 'draft' && t.status !== 'archived')
+            .slice(0, 4)
+            .map((t, index) => ({
+                id: t.id,
+                title: t.title,
+                category: t.category,
+                image: t.image_url,
+                // Assign different sizes based on index for the bento layout
+                size: index === 0 ? "large" : (index === 3 ? "wide" : "medium")
+            }));
+    }, [templates]);
 
     useLayoutEffect(() => {
+        if (projects.length === 0) return;
+
         const ctx = gsap.context(() => {
             gsap.from(".bento-card", {
                 scrollTrigger: {
@@ -59,7 +48,7 @@ const BentoGrid = () => {
         }, containerRef);
 
         return () => ctx.revert();
-    }, []);
+    }, [projects]);
 
     const handleMouseMove = (e) => {
         const card = e.currentTarget;
@@ -78,6 +67,12 @@ const BentoGrid = () => {
         e.currentTarget.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
     };
 
+    const handleCardClick = (id) => {
+        navigate('/store'); // Or navigate to specific detail if we have a route
+    };
+
+    if (projects.length === 0) return null; // Hide section if no projects
+
     return (
         <section className="bento-section" ref={containerRef}>
             <div className="container">
@@ -93,6 +88,8 @@ const BentoGrid = () => {
                             className={`bento-card ${project.size}`}
                             onMouseMove={handleMouseMove}
                             onMouseLeave={handleMouseLeave}
+                            onClick={() => handleCardClick(project.id)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <div className="card-inner">
                                 <div className="card-image" style={{ backgroundImage: `url(${project.image})` }}></div>
