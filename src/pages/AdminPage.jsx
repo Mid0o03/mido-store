@@ -150,9 +150,14 @@ const AdminPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const success = await login(email, password);
-        setLoading(false);
-        if (!success) alert('Login Failed');
+        try {
+            await login(email, password);
+        } catch (error) {
+            console.error("Login exception:", error);
+            alert(`Login Failed: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatPrice = (price) => {
