@@ -12,15 +12,22 @@ const ClientLoginPage = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = (e) => {
+    const [error, setError] = useState(null);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate network delay
-        setTimeout(() => {
-            loginClient(email);
-            setIsLoading(false);
+        setError(null);
+
+        try {
+            await loginClient(email, password);
             navigate('/client');
-        }, 1500);
+        } catch (err) {
+            console.error(err);
+            setError(err.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -32,6 +39,11 @@ const ClientLoginPage = () => {
                 </p>
 
                 <form onSubmit={handleLogin}>
+                    {error && (
+                        <div className="mb-4 text-red-500 text-sm bg-red-500/10 p-2 rounded text-center">
+                            {error}
+                        </div>
+                    )}
                     <div className="form-group mb-4">
                         <input
                             type="email"
