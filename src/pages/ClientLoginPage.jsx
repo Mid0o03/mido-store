@@ -109,10 +109,12 @@ const ClientLoginPage = () => {
                                 className="admin-input"
                                 style={{
                                     background: 'rgba(0,0,0,0.2)',
-                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid var(--accent-color)',
                                     padding: '1.2rem',
                                     fontSize: '1.1rem',
-                                    height: 'auto'
+                                    height: 'auto',
+                                    outline: 'none',
+                                    boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
                                 }}
                                 required
                             />
@@ -127,10 +129,12 @@ const ClientLoginPage = () => {
                                 className="admin-input"
                                 style={{
                                     background: 'rgba(0,0,0,0.2)',
-                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid var(--accent-color)',
                                     padding: '1.2rem',
                                     fontSize: '1.1rem',
-                                    height: 'auto'
+                                    height: 'auto',
+                                    outline: 'none',
+                                    boxShadow: '0 0 10px rgba(57, 255, 20, 0.1)'
                                 }}
                                 required
                             />
