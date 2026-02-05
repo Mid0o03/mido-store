@@ -1,27 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { X, Trash2, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Elements } from '@stripe/react-stripe-js';
+import { stripePromise } from '../stripe';
+import CheckoutForm from './CheckoutForm';
 import './CartDrawer.css';
 
 const CartDrawer = () => {
     const { cartItems, isCartOpen, toggleCart, removeFromCart, clearCart, cartTotal } = useCart();
     const { t } = useLanguage();
-    const { clientUser, loginClient } = useAuth(); // Get auth context
-    const [paymentStep, setPaymentStep] = React.useState('cart'); // 'cart', 'auth', 'payment', 'processing', 'success'
-    const [cardDetails, setCardDetails] = React.useState({ number: '', expiry: '', cvc: '' });
+    const { clientUser, loginClient } = useAuth();
+    const [paymentStep, setPaymentStep] = useState('cart'); // 'cart', 'auth', 'payment', 'processing', 'success'
+
+    // Stripe State
+    const [clientSecret, setClientSecret] = useState(null);
+    const [stripeError, setStripeError] = useState(null);
 
     // Auth State in Drawer
-    const [authMode, setAuthMode] = React.useState('login'); // 'login' or 'signup'
-    const [authEmail, setAuthEmail] = React.useState('');
-    const [authPassword, setAuthPassword] = React.useState('');
+    const [authMode, setAuthMode] = useState('login');
+    const [authEmail, setAuthEmail] = useState('');
+    const [authPassword, setAuthPassword] = useState('');
 
     const navigate = useNavigate();
 
     const isPaymentMode = paymentStep === 'payment';
-    const isAuthMode = paymentStep === 'auth';
+
+    // Fetch PaymentIntent when entering payment step
+    useEffect(() => {
+        if (paymentStep === 'payment' && cartTotal > 0) {
+            setClientSecret(null); // Reset
+
+            // Call Vercel API
+            fetch('/api/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: cartItems,
+                    amount: cartTotal
+                }),
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.clientSecret) {
+                        setClientSecret(data.clientSecret);
+                    } else {
+                        console.error('No clientSecret returned', data);
+                        setStripeError("Erreur lors de l'initialisation du paiement.");
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching payment intent:', err);
+                    setStripeError("Erreur de connexion au serveur de paiement.");
+                });
+        }
+    }, [paymentStep, cartTotal, cartItems]);
 
     const handleCheckoutClick = () => {
         if (clientUser) {
@@ -38,50 +73,50 @@ const CartDrawer = () => {
         setPaymentStep('payment');
     };
 
-    const handlePaymentSubmit = (e) => {
-        e.preventDefault();
-        setPaymentStep('processing');
+    const handlePaymentSuccess = () => {
+        setPaymentStep('success');
 
-        // Simulate API call
+        // Save purchased items to mock DB (localStorage)
+        const currentPurchases = JSON.parse(localStorage.getItem('purchasedAssets') || '[]');
+        const newPurchases = cartItems.map(item => ({
+            ...item,
+            purchaseDate: new Date().toLocaleDateString(),
+            version: 'v1.0.0'
+        }));
+        localStorage.setItem('purchasedAssets', JSON.stringify([...newPurchases, ...currentPurchases]));
+
         setTimeout(() => {
-            // Save purchased items to mock DB (localStorage)
-            const currentPurchases = JSON.parse(localStorage.getItem('purchasedAssets') || '[]');
-            const newPurchases = cartItems.map(item => ({
-                ...item,
-                purchaseDate: new Date().toLocaleDateString(),
-                version: 'v1.0.0'
-            }));
-            localStorage.setItem('purchasedAssets', JSON.stringify([...newPurchases, ...currentPurchases]));
-
-            setPaymentStep('success');
-            setTimeout(() => {
-                clearCart();
-                setPaymentStep('cart');
-                setCardDetails({ number: '', expiry: '', cvc: '' });
-                setAuthEmail('');
-                setAuthPassword('');
-                toggleCart();
-                navigate('/client');
-            }, 2000);
-        }, 2000);
+            clearCart();
+            setPaymentStep('cart');
+            setAuthEmail('');
+            setAuthPassword('');
+            toggleCart();
+            navigate('/client');
+        }, 3000);
     };
 
-    const handleCardChange = (e) => {
-        const { name, value } = e.target;
-        let formattedValue = value;
-
-        if (name === 'number') {
-            formattedValue = value.replace(/\D/g, '').substring(0, 16).replace(/(\d{4})/g, '$1 ').trim();
-        } else if (name === 'expiry') {
-            formattedValue = value.replace(/\D/g, '').substring(0, 4).replace(/(\d{2})(\d{1,2})/, '$1/$2');
-        } else if (name === 'cvc') {
-            formattedValue = value.replace(/\D/g, '').substring(0, 3);
-        }
-
-        setCardDetails(prev => ({ ...prev, [name]: formattedValue }));
+    const handleCancelPayment = () => {
+        setPaymentStep('cart');
+        setClientSecret(null);
     };
 
     if (!isCartOpen) return null;
+
+    const stripeOptions = {
+        clientSecret,
+        appearance: {
+            theme: 'night',
+            variables: {
+                colorPrimary: '#39FF14',
+                colorBackground: '#1a1a1a',
+                colorText: '#ffffff',
+                colorDanger: '#ff4444',
+                fontFamily: 'Inter, sans-serif',
+                spacingUnit: '4px',
+                borderRadius: '8px',
+            },
+        },
+    };
 
     return (
         <>
@@ -91,7 +126,7 @@ const CartDrawer = () => {
                     <h2>
                         {paymentStep === 'cart' && t('cart.title')}
                         {paymentStep === 'auth' && (authMode === 'login' ? 'Connexion' : 'Inscription')}
-                        {paymentStep === 'payment' && 'Paiement'}
+                        {paymentStep === 'payment' && 'Paiement Sécurisé'}
                     </h2>
                     <button className="close-btn" onClick={toggleCart}>
                         <X size={24} color="white" />
@@ -104,12 +139,7 @@ const CartDrawer = () => {
                             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#39FF14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
                         <h3>Paiement Réussi !</h3>
-                        <p>Vos assets sont en route.</p>
-                    </div>
-                ) : paymentStep === 'processing' ? (
-                    <div className="cart-success">
-                        <div className="spinner"></div>
-                        <h3 className="mt-4">Traitement...</h3>
+                        <p>Merci pour votre achat.</p>
                     </div>
                 ) : paymentStep === 'auth' ? (
                     <div className="payment-form">
@@ -158,119 +188,78 @@ const CartDrawer = () => {
                             &larr; Retour au panier
                         </button>
                     </div>
+                ) : isPaymentMode ? (
+                    <div className="stripe-container" style={{ padding: '1rem' }}>
+                        {stripeError ? (
+                            <div className="error-message" style={{ color: 'red', textAlign: 'center' }}>
+                                <p>{stripeError}</p>
+                                <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
+                                    (Avez-vous configuré les clés Stripe dans .env ?)
+                                </p>
+                                <button
+                                    className="text-secondary text-sm mt-4 hover:text-white"
+                                    onClick={handleCancelPayment}
+                                >
+                                    Retour
+                                </button>
+                            </div>
+                        ) : clientSecret ? (
+                            <Elements options={stripeOptions} stripe={stripePromise}>
+                                <CheckoutForm
+                                    onSuccess={handlePaymentSuccess}
+                                    onCancel={handleCancelPayment}
+                                    amount={cartTotal.toFixed(2)}
+                                />
+                            </Elements>
+                        ) : (
+                            <div className="loading-spinner" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <div className="spinner"></div>
+                                <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>Initialisation sécurisée...</p>
+                            </div>
+                        )}
+                    </div>
                 ) : (
-                    <>
-                        <div className="cart-content-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-                            {/* If we check 'isCheckingOut' state we could toggle views. 
-                                For better UX, let's keep it simple: List -> Button "Checkout" -> Form expands or replaces list 
-                            */}
-
-                            {/* For this iteration, let's keep the items visible but maybe shrink them? 
-                                Or better: Replace items with form when clicking checkout.
-                            */}
-
-                            {!isPaymentMode ? (
-                                <div className="cart-items">
-                                    {cartItems.length === 0 ? (
-                                        <div className="empty-cart">
-                                            <p>{t('cart.empty')}</p>
-                                        </div>
-                                    ) : (
-                                        cartItems.map((item, index) => (
-                                            <div key={`${item.id}-${index}`} className="cart-item">
-                                                <div className="item-image" style={{ backgroundImage: `url(${item.image_url || item.image})` }}></div>
-                                                <div className="item-details">
-                                                    <h3>{item.title}</h3>
-                                                    <span className="item-price">{item.price}</span>
-                                                </div>
-                                                <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
+                    // Default Cart View
+                    <div className="cart-content-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+                        <div className="cart-items">
+                            {cartItems.length === 0 ? (
+                                <div className="empty-cart">
+                                    <p>{t('cart.empty')}</p>
                                 </div>
                             ) : (
-                                <form onSubmit={handlePaymentSubmit} className="payment-form">
-                                    <div className="payment-summary mb-4">
-                                        <span>Total à payer</span>
-                                        <span className="text-accent font-mono text-xl">{cartTotal.toFixed(2)}€</span>
-                                    </div>
-
-                                    <div className="form-group mb-3">
-                                        <label>Numéro de carte</label>
-                                        <div className="input-icon-wrapper">
-                                            <CreditCard size={18} className="input-icon" />
-                                            <input
-                                                name="number"
-                                                value={cardDetails.number}
-                                                onChange={handleCardChange}
-                                                placeholder="0000 0000 0000 0000"
-                                                className="admin-input"
-                                                required
-                                            />
+                                cartItems.map((item, index) => (
+                                    <div key={`${item.id}-${index}`} className="cart-item">
+                                        <div className="item-image" style={{ backgroundImage: `url(${item.image_url || item.image})` }}></div>
+                                        <div className="item-details">
+                                            <h3>{item.title}</h3>
+                                            <span className="item-price">{item.price}</span>
                                         </div>
+                                        <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
-
-                                    <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                                        <div className="form-group mb-3" style={{ flex: 1 }}>
-                                            <label>Expiration</label>
-                                            <input
-                                                name="expiry"
-                                                value={cardDetails.expiry}
-                                                onChange={handleCardChange}
-                                                placeholder="MM/YY"
-                                                className="admin-input"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group mb-3" style={{ flex: 1 }}>
-                                            <label>CVC</label>
-                                            <input
-                                                name="cvc"
-                                                value={cardDetails.cvc}
-                                                onChange={handleCardChange}
-                                                placeholder="123"
-                                                className="admin-input"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        className="text-secondary text-sm mb-4 hover:text-white"
-                                        onClick={() => setPaymentStep('cart')}
-                                    >
-                                        &larr; Retour au panier
-                                    </button>
-
-                                    <button className="checkout-btn">
-                                        Payer {cartTotal.toFixed(2)}€
-                                    </button>
-                                </form>
-                            )}
-
-                            {!isPaymentMode && cartItems.length > 0 && (
-                                <div className="cart-footer">
-                                    <div className="cart-total">
-                                        <span>{t('cart.total')}</span>
-                                        <span className="total-amount">{cartTotal.toFixed(2)}€</span>
-                                    </div>
-                                    <button
-                                        className="checkout-btn"
-                                        onClick={handleCheckoutClick}
-                                    >
-                                        {t('cart.checkout')} <CreditCard size={20} />
-                                    </button>
-                                </div>
+                                ))
                             )}
                         </div>
-                    </>
+
+                        {cartItems.length > 0 && (
+                            <div className="cart-footer">
+                                <div className="cart-total">
+                                    <span>{t('cart.total')}</span>
+                                    <span className="total-amount">{cartTotal.toFixed(2)}€</span>
+                                </div>
+                                <button
+                                    className="checkout-btn"
+                                    onClick={handleCheckoutClick}
+                                >
+                                    {t('cart.checkout')} <CreditCard size={20} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </>
     );
 };
-
 export default CartDrawer;
