@@ -45,7 +45,7 @@ export default async function handler(req, res) {
                     </div>
                 </div>
 
-                <p>Vous pouvez télécharger vos fichiers à tout moment depuis votre <a href="https://mido-store.vercel.app/client" style="color: #0070f3;">Espace Client</a>.</p>
+                <p>Vous pouvez télécharger vos fichiers à tout moment depuis votre <a href="https://www.midodev.fr/client" style="color: #0070f3;">Espace Client</a>.</p>
                 
                 <div style="font-size: 12px; color: #888; margin-top: 30px; text-align: center;">
                     Ceci est un email automatique. Merci de ne pas répondre directement.<br>
