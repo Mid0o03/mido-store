@@ -51,11 +51,14 @@ const ClientDashboard = () => {
                         .select('id, file_url, demo_url')
                         .in('id', templateIds);
 
+                    console.log("📦 Templates data from DB:", templatesData);
+
                     if (templatesData) {
                         templatesData.forEach(t => {
                             fileMap[t.id] = t;
                         });
                     }
+                    console.log("🗺️ File map created:", fileMap);
                 }
 
                 const assets = data.map(item => ({
@@ -68,6 +71,8 @@ const ClientDashboard = () => {
                     file_url: fileMap[item.template_id]?.file_url,
                     demo_url: fileMap[item.template_id]?.demo_url
                 }));
+
+                console.log("✅ Final assets array:", assets);
                 setMyAssets(assets);
             }
             setLoading(false);
@@ -79,6 +84,8 @@ const ClientDashboard = () => {
     const [viewingCode, setViewingCode] = useState(null);
 
     const handleDownload = async (asset) => {
+        console.log("🔽 Download button clicked! Asset:", asset);
+
         if (!asset.file_url) {
             alert("❌ Fichier non disponible pour ce template.\n\nContactez le support avec votre ID d'achat: " + asset.purchaseId);
             console.error("Download failed: No file_url for asset", asset);
