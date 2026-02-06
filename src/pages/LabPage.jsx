@@ -6,8 +6,33 @@ import SEO from '../components/SEO';
 
 const LabPage = () => {
     const { t } = useLanguage();
-    // ...
-    // (omitting hook body for brevity in search, relying on unique context)
+
+    const experiments = [
+        {
+            id: 'EXP-001',
+            title: 'AI Template Generator',
+            desc: 'Generate custom templates using AI based on your requirements and design preferences.',
+            status: 'In Development',
+            color: '#39FF14',
+            locked: true
+        },
+        {
+            id: 'EXP-002',
+            title: 'Live Preview Editor',
+            desc: 'Edit and customize templates in real-time with instant visual feedback.',
+            status: 'Coming Soon',
+            color: '#FF3366',
+            locked: true
+        },
+        {
+            id: 'EXP-003',
+            title: 'Component Library',
+            desc: 'Reusable UI components extracted from premium templates for rapid prototyping.',
+            status: 'Planning',
+            color: '#00D9FF',
+            locked: true
+        }
+    ];
 
     return (
         <div className="page-container container">
