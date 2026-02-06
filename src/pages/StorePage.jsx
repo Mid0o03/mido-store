@@ -263,20 +263,15 @@ const StorePage = () => {
                                     <span className={`tier-badge ${item.price === "Free" || item.price === "$0" ? 'free' : 'premium'}`}>
                                         {item.price === "Free" || item.price === "$0" ? t('store.free') : t('store.premium')}
                                     </span>
+
+                                    <div className="category-badge-corner">
+                                        <span className="badge category">{item.category}</span>
+                                        {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
+                                    </div>
                                 </div>
                                 <div className="card-content">
                                     <div className="card-header">
                                         <h3 className="card-title">{item.title}</h3>
-                                        <div className="card-badges">
-                                            <span className="badge category">{item.category}</span>
-                                            {item.subCategory !== "All" && <span className="badge sub-category">{item.subCategory}</span>}
-                                        </div>
-                                    </div>
-
-                                    <div className="card-tags">
-                                        {item.tech && item.tech.slice(0, 3).map((tag, i) => (
-                                            <span key={i} className="tech-tag font-mono">{tag}</span>
-                                        ))}
                                     </div>
 
                                     <div className="card-divider"></div>
