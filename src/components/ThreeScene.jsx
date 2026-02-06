@@ -75,7 +75,9 @@ const ThreeScene = () => {
 const Rig = () => {
     const { camera, mouse } = useThree();
     useFrame(() => {
+        // eslint-disable-next-line react-hooks/immutability
         camera.position.x += (mouse.x * 2 - camera.position.x) * 0.05;
+        // eslint-disable-next-line react-hooks/immutability
         camera.position.y += (-mouse.y * 2 - camera.position.y) * 0.05;
         camera.lookAt(0, 0, 0);
     });

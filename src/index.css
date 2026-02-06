@@ -17,6 +17,11 @@
   box-sizing: border-box;
 }
 
+::selection {
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-primary);

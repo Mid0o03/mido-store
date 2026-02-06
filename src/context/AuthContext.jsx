@@ -9,6 +9,19 @@ export const AuthProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    const checkAdmin = (session) => {
+        // Admin Check using Environment Variables
+        const adminEmails = import.meta.env.VITE_ADMIN_EMAILS
+            ? import.meta.env.VITE_ADMIN_EMAILS.split(',')
+            : [];
+
+        if (session?.user?.email && adminEmails.includes(session.user.email)) {
+            setIsAdmin(true);
+        } else {
+            setIsAdmin(false);
+        }
+    };
+
     useEffect(() => {
         // Initial Session Check
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,15 +42,7 @@ export const AuthProvider = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
-    const checkAdmin = (session) => {
-        // Simple Admin Check: In detailed apps, use Public Profile table or App Metadata.
-        // For MVP: Check email.
-        if (session?.user?.email === 'admin@mido.com' || session?.user?.email === 'midodev.fr@gmail.com') { // REPLACE with actual admin email if known, or use metadata
-            setIsAdmin(true);
-        } else {
-            setIsAdmin(false);
-        }
-    };
+
 
     // Generic Login (Used by Admin & Client)
     const login = async (email, password) => {

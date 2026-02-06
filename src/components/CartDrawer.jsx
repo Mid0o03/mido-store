@@ -127,7 +127,6 @@ const CartDrawer = () => {
                             date: new Date().toLocaleDateString()
                         })
                     }).then(res => res.json())
-                        .then(data => console.log("Email sent:", data))
                         .catch(err => console.error("Email API Error:", err));
                 } catch (emailErr) {
                     console.error("Failed to trigger email:", emailErr);

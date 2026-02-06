@@ -4,33 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
-import { Plus, Eye, ShoppingBag, X } from 'lucide-react';
+import { Plus, Eye, ShoppingBag, X, Search } from 'lucide-react';
 import './PageStyles.css';
+import SEO from '../components/SEO';
 
 /* Inline styles for demo button in card overlay */
-const demoBtnCardStyle = `
-    .demo-btn-card {
-        background: rgba(0, 0, 0, 0.7);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .demo-btn-card:hover {
-        background: var(--accent-color);
-        color: black;
-        border-color: var(--accent-color);
-        transform: scale(1.1);
-    }
-    .card-overlay {
-        gap: 10px; /* Space between View Details and Eye Icon */
-    }
-`;
+
 
 // Inject styles (Temporary hack since we are editing JSX file but want CSS)
 // A better way is to put this in PageStyles.css
@@ -74,10 +53,17 @@ const StorePage = () => {
         }
     }, [clientUser]);
 
+    const [notification, setNotification] = useState(null);
+
+    const showNotification = (msg) => {
+        setNotification(msg);
+        setTimeout(() => setNotification(null), 3000);
+    };
+
     const handleAddToCart = (e, item) => {
         e.stopPropagation();
         if (purchasedIds.has(item.id)) {
-            alert("You already own this item! Check your dashboard.");
+            showNotification(t('store.already_owned'));
             return;
         }
         addToCart(item); // Add to real cart
@@ -144,11 +130,34 @@ const StorePage = () => {
 
     return (
         <div className="page-container container">
-            <style>{demoBtnCardStyle}</style>
+            <SEO
+                title="Store"
+                description="Browse our collection of premium React templates. Landing pages, dashboards, and e-commerce solutions."
+                url="/store"
+            />
             <h1 className="page-title">{t('store.title_prefix')} <span className="text-accent">{t('store.title_highlight')}</span></h1>
             <p className="page-subtitle" style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
                 {t('store.subtitle')}
             </p>
+
+            {/* Notification Toast */}
+            {notification && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: 'rgba(57, 255, 20, 0.1)',
+                    border: '1px solid var(--accent-color)',
+                    color: 'white',
+                    padding: '1rem 2rem',
+                    borderRadius: '8px',
+                    zIndex: 1000,
+                    backdropFilter: 'blur(10px)',
+                    animation: 'fadeIn 0.3s ease'
+                }}>
+                    {notification}
+                </div>
+            )}
 
             <div className="filters-container glass-panel">
                 <div className="store-filter-bar">
@@ -161,7 +170,7 @@ const StorePage = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="search-input"
                         />
-                        <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <div className="search-icon"><Search size={20} /></div>
                     </div>
 
                     {/* Sort Dropdown - Custom React Implementation */}

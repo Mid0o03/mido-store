@@ -80,29 +80,42 @@ const ClientDashboard = () => {
 
     const handleDownload = async (asset) => {
         if (!asset.file_url) {
-            alert("Download file not configured for this item.");
+            alert("❌ Fichier non disponible pour ce template.\n\nContactez le support avec votre ID d'achat: " + asset.purchaseId);
+            console.error("Download failed: No file_url for asset", asset);
             return;
         }
 
-        try {
-            // file_url is stored as full URL or path? 
-            // In AdminPage we stored the full public URL for images, but for ZIPs we likely stored the path or public URL.
-            // If it's in 'assets' private bucket, we need a signed URL.
-            // Assuming Admin uploaded to 'assets' bucket and stored the path.
+        console.log("Attempting download for asset:", {
+            title: asset.title,
+            file_url: asset.file_url,
+            purchaseId: asset.purchaseId
+        });
 
+        try {
             // Check if it's a full URL (public) or a path
             if (asset.file_url.startsWith('http')) {
+                console.log("Opening public URL:", asset.file_url);
                 window.open(asset.file_url, '_blank');
                 return;
             }
 
             // It's a path in storage, generate signed URL
+            console.log("Generating signed URL for path:", asset.file_url);
             const { data, error } = await supabase
                 .storage
                 .from('assets') // Bucket name
-                .createSignedUrl(asset.file_url, 60); // 60 seconds validity
+                .createSignedUrl(asset.file_url, 3600); // 1 hour validity (increased from 60s)
 
-            if (error) throw error;
+            if (error) {
+                console.error("Signed URL generation error:", error);
+                throw new Error(`Erreur de génération du lien: ${error.message}`);
+            }
+
+            if (!data || !data.signedUrl) {
+                throw new Error("Aucun lien de téléchargement généré");
+            }
+
+            console.log("Signed URL generated successfully");
 
             // Trigger download
             const link = document.createElement('a');
@@ -111,9 +124,11 @@ const ClientDashboard = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            console.log("Download triggered successfully");
         } catch (err) {
-            console.error("Download error:", err);
-            alert("Error downloading file: " + err.message);
+            console.error("Download error details:", err);
+            alert(`❌ Erreur de téléchargement: ${err.message}\n\nID d'achat: ${asset.purchaseId}\nContactez le support si le problème persiste.`);
         }
     };
 
@@ -167,7 +182,14 @@ const ClientDashboard = () => {
                             <div className="card-content">
                                 <div className="card-header">
                                     <h3 className="card-title">{asset.title}</h3>
-                                    <span className="badge category">{asset.version || 'v1.0'}</span>
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        <span className="badge category">{asset.version || 'v1.0'}</span>
+                                        {!asset.file_url && (
+                                            <span className="badge" style={{ background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.5)', color: '#ffaaaa' }}>
+                                                Fichier bientôt disponible
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="card-tags">
                                     <span className="tech-tag font-mono">{t('client.purchased')}: {asset.date || asset.purchaseDate}</span>

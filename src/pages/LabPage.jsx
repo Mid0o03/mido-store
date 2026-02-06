@@ -2,57 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useLanguage } from '../context/LanguageContext';
 import './PageStyles.css';
+import SEO from '../components/SEO';
 
 const LabPage = () => {
     const { t } = useLanguage();
-    const cursorRef = useRef(null);
-
-    // Lab Experiments Data
-    const experiments = [
-        {
-            id: 'exp-001',
-            title: "AI Color Gen",
-            desc: "Generate accessible palettes from text prompts.",
-            status: "Alpha",
-            color: "#FF0055",
-            locked: true
-        },
-        {
-            id: 'exp-002',
-            title: "3D Component Viewer",
-            desc: "Interact with React Three Fiber components in real-time.",
-            status: "Dev",
-            color: "#00E0FF",
-            locked: true
-        },
-        {
-            id: 'exp-003',
-            title: "Type Scale Calculator",
-            desc: "Modular typography system builder.",
-            status: "Beta",
-            color: "#CCFF00",
-            locked: true
-        },
-        {
-            id: 'exp-004',
-            title: "Glassmorphism UI Kit",
-            desc: "Experimental CSS backdrop-filter playground.",
-            status: "Concept",
-            color: "#FFFFFF",
-            locked: true
-        }
-    ];
-
-    useEffect(() => {
-        // Simple entry animation
-        gsap.fromTo('.lab-card',
-            { y: 50, opacity: 0 },
-            { y: 0, opacity: 1, stagger: 0.1, duration: 0.8, ease: "power3.out" }
-        );
-    }, []);
+    // ...
+    // (omitting hook body for brevity in search, relying on unique context)
 
     return (
         <div className="page-container container">
+            <SEO title="Lab" description="Experimental features and R&D playground." url="/lab" />
             <h1 className="page-title text-glitch" style={{ fontSize: '4rem', letterSpacing: '-2px' }}>
                 MIDO <span className="text-accent">LAB</span>_
             </h1>
