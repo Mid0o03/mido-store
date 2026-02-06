@@ -105,6 +105,24 @@ const AdminPage = () => {
         }
     };
 
+    // Helper function to download a file from Supabase Storage
+    const downloadFileFromStorage = async (filePath) => {
+        try {
+            console.log("Downloading file from storage:", filePath);
+            const { data, error } = await supabase
+                .storage
+                .from('assets')
+                .download(filePath);
+
+            if (error) throw error;
+            console.log("File downloaded successfully");
+            return data; // Returns a Blob
+        } catch (err) {
+            console.error("Error downloading file from storage:", err);
+            return null;
+        }
+    };
+
     const handleEdit = (template) => {
         setEditMode(true);
         setEditingId(template.id);
@@ -144,9 +162,27 @@ const AdminPage = () => {
         });
     };
 
-    const handleDuplicate = (template) => {
+    const handleDuplicate = async (template) => {
         setEditMode(false); // We are adding a NEW item, not editing the old one
         setEditingId(null);
+
+        let zipFileBlob = null;
+
+        // If template has a file_url, download it from storage
+        if (template.file_url) {
+            console.log("🔄 Duplicating template with ZIP file:", template.file_url);
+            zipFileBlob = await downloadFileFromStorage(template.file_url);
+
+            if (zipFileBlob) {
+                // Convert Blob to File object with original filename
+                const fileName = template.file_url.split('/').pop();
+                zipFileBlob = new File([zipFileBlob], fileName, { type: 'application/zip' });
+                console.log("✅ ZIP file ready for re-upload:", fileName);
+            } else {
+                console.warn("⚠️ Failed to download ZIP file, copy will not have file attached");
+            }
+        }
+
         setFormData({
             title: `${template.title} (Copy)`,
             category: template.category,
@@ -157,8 +193,8 @@ const AdminPage = () => {
             image_file: null,
             status: 'draft', // Safety: Duplicate as draft by default
             is_featured: false,
-            file_url: template.file_url || null, // Might want to not copy this? But usually convenient.
-            zip_file: null,
+            file_url: zipFileBlob ? zipFileBlob.name : null, // Show filename in UI
+            zip_file: zipFileBlob, // Will be uploaded with new name on save
             demo_url: template.demo_url || ''
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -180,6 +216,7 @@ const AdminPage = () => {
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
             const url = URL.createObjectURL(file);
+            console.log("🖼️ Image dropped, replacing existing:", formData.image_url ? "Yes" : "No");
             setFormData({ ...formData, image_url: url, image_file: file });
         }
     };
@@ -518,6 +555,7 @@ const AdminPage = () => {
                             setIsDraggingZip(false);
                             const file = e.dataTransfer.files[0];
                             if (file && (file.name.endsWith('.zip') || file.type.includes('zip'))) {
+                                console.log("📦 ZIP dropped, replacing existing:", formData.file_url ? "Yes" : "No");
                                 setFormData({ ...formData, zip_file: file, file_url: file.name });
                             } else {
                                 alert("Please upload a .zip file");
