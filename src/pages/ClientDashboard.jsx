@@ -179,12 +179,6 @@ const ClientDashboard = () => {
                         <div key={asset.id} className="store-card glass-panel" style={{ cursor: 'default' }}>
                             <div className="card-preview" style={{ height: '180px' }}>
                                 <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }}></div>
-                                <div className="card-overlay">
-                                    <button className="view-btn" onClick={() => handleDownload(asset)}>
-                                        <Download size={18} style={{ marginRight: '0.5rem' }} />
-                                        {t('client.download')}
-                                    </button>
-                                </div>
                             </div>
                             <div className="card-content">
                                 <div className="card-header">
