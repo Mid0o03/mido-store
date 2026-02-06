@@ -33,8 +33,19 @@ const CartDrawer = () => {
 
     // Fetch PaymentIntent when entering payment step
     useEffect(() => {
+        // Handle free items - skip Stripe entirely
+        if (paymentStep === 'payment' && cartTotal === 0) {
+            console.log("Free item detected, skipping payment");
+            // Directly trigger success for free items
+            setTimeout(() => {
+                handlePaymentSuccess();
+            }, 500); // Small delay for UX
+            return;
+        }
+
         if (paymentStep === 'payment' && cartTotal > 0) {
             setClientSecret(null); // Reset
+            console.log("Creating PaymentIntent for amount:", cartTotal);
 
             // Call Vercel API
             fetch('/api/create-payment-intent', {
@@ -56,6 +67,7 @@ const CartDrawer = () => {
                 .then(data => {
                     if (data.clientSecret) {
                         setClientSecret(data.clientSecret);
+                        console.log("PaymentIntent created successfully");
                     } else {
                         throw new Error("Pas de clientSecret retourné par le serveur.");
                     }
@@ -65,7 +77,7 @@ const CartDrawer = () => {
                     setStripeError(err.message);
                 });
         }
-    }, [paymentStep, cartTotal, cartItems]);
+    }, [paymentStep, cartTotal]); // ✅ Removed cartItems to prevent infinite loop
 
     const handleCheckoutClick = () => {
         if (clientUser) {
