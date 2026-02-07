@@ -138,6 +138,13 @@ export const Hero = () => (
 
     const uploadAsset = async (file) => {
         try {
+            // Check file size (500MB limit safety check)
+            const MAX_SIZE = 500 * 1024 * 1024; // 500MB
+            if (file.size > MAX_SIZE) {
+                throw new Error(`File is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Max allowed is 500MB.`);
+            }
+            console.log(`📤 Uploading asset: ${file.name} Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
             // Store in a 'private' folder structure if needed, or root
