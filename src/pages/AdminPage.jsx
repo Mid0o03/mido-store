@@ -580,7 +580,7 @@ const AdminPage = () => {
                         ) : (
                             <div className="drop-placeholder">
                                 <p className="mb-2">Drag & Drop Product File (.ZIP)</p>
-                                <span className="text-secondary text-sm">Max 500MB</span>
+                                <span className="text-secondary text-sm">Max 1GB</span>
                             </div>
                         )}
                     </div>
