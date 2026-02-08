@@ -10,7 +10,7 @@ const Contact = () => {
                     <p className="contact-text">
                         Let's build something exceptional together. Tell me about your project, your timeline, and your vision.
                     </p>
-                    <div className="contact-email text-accent">hello@mido.dev</div>
+                    <div className="contact-email text-accent">contact@midodev.fr</div>
                 </div>
 
                 <form className="contact-form glass-panel">

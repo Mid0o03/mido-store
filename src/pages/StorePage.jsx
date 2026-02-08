@@ -81,8 +81,8 @@ const StorePage = () => {
     const categories = useMemo(() => {
         const cats = {
             "All": [],
-            "Web": ["All", "Landing Page", "SaaS", "Dashboard", "Portfolio", "E-commerce", "Blog"],
-            "App": ["All", "Mobile UI", "PWA", "Desktop App", "AI Interfaces"]
+            "Web": ["All", "SaaS", "Portfolio", "E-commerce", "Landing Page", "UI Kit", "Blog", "Dashboard"],
+            "App": ["All", "Mobile UI", "PWA", "Desktop App", "AI Interfaces", "Design System"]
         };
         return cats;
     }, []);

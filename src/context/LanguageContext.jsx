@@ -120,7 +120,7 @@ export const translations = {
             modal: {
                 title: 'Documentation & Accès',
                 desc: 'Merci pour votre achat ! Vous pouvez télécharger le code source ZIP ci-dessous.',
-                support: 'Besoin d\'aide ? Contactez support@midodev.fr avec votre ID :',
+                support: 'Besoin d\'aide ? Contactez contact@midodev.fr avec votre ID :',
                 demo_label: 'Lien Demo Live :',
                 download_btn: 'Télécharger .ZIP',
                 close: 'Fermer',
@@ -276,7 +276,7 @@ export const translations = {
             modal: {
                 title: 'Documentation & Access',
                 desc: 'Thank you for your purchase! You can download the source code ZIP directly below.',
-                support: 'Need support? Contact support@midodev.fr with Purchase ID:',
+                support: 'Need support? Contact contact@midodev.fr with Purchase ID:',
                 demo_label: 'Live Demo Link:',
                 download_btn: 'Download .ZIP',
                 close: 'Close',

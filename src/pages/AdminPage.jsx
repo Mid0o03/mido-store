@@ -6,8 +6,8 @@ import { supabase } from '../supabase';
 import './PageStyles.css';
 
 const CATEGORIES = {
-    Web: ['SaaS', 'Portfolio', 'E-commerce', 'Landing Page', 'UI Kit'],
-    App: ['Mobile UI', 'AI Interfaces', 'AR/VR', 'Design System']
+    Web: ['SaaS', 'Portfolio', 'E-commerce', 'Landing Page', 'UI Kit', 'Blog', 'Dashboard'],
+    App: ['Mobile UI', 'PWA', 'Desktop App', 'AI Interfaces', 'Design System']
 };
 
 const TECH_STACKS = [
