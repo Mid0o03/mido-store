@@ -10,6 +10,7 @@ import AdminCRM from '../components/AdminCRM';
 import ChatPanel from '../components/ChatPanel';
 import '../components/ChatViewer.css';
 import { initNotifications } from '../services/notificationService';
+import './AdminPage.css';
 import './PageStyles.css';
 
 const CATEGORIES = {
@@ -351,39 +352,36 @@ const AdminPage = () => {
 
     if (!session || !isAdmin) {
         return (
-            <div className="page-container container flex-center">
-                <form onSubmit={handleLogin} className="glass-panel login-form">
-                    <h2 className="mb-4 text-center">{t('admin.login')}</h2>
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080810', paddingTop: '80px' }}>
+                <div style={{ width: '100%', maxWidth: '400px', padding: '0 1.5rem' }}>
 
-                    {session && !isAdmin && (
-                        <div className="mb-4 text-red-500 text-center bg-red-500/10 p-2 rounded">
-                            Access Denied for {session.user.email}
-                            <button onClick={logout} className="text-sm underline ml-2 block mx-auto mt-1">
-                                Logout
-                            </button>
+                    {/* Logo */}
+                    <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                        <p style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-1px', margin: 0 }}>MIDO</p>
+                        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.65rem', letterSpacing: '3px', textTransform: 'uppercase', marginTop: '4px' }}>Admin Dashboard</p>
+                    </div>
+
+                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                        {session && !isAdmin && (
+                            <div style={{ background: 'rgba(255,80,80,0.08)', border: '1px solid rgba(255,80,80,0.2)', borderRadius: '10px', padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#ff8080', textAlign: 'center' }}>
+                                Accès refusé pour {session.user.email}
+                                <button onClick={logout} style={{ display: 'block', margin: '6px auto 0', fontSize: '0.75rem', color: '#ff8080', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Se déconnecter</button>
+                            </div>
+                        )}
+
+                        <div className="admin-field">
+                            <label className="admin-label">Email</label>
+                            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@midodev.fr" className="admin-input" required />
                         </div>
-                    )}
-
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email"
-                        className="admin-input mb-4"
-                        required
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder={t('admin.password')}
-                        className="admin-input mb-4"
-                        required
-                    />
-                    <button type="submit" className="cta-primary w-full" disabled={loading}>
-                        {loading ? 'LOADING...' : t('admin.enter')}
-                    </button>
-                </form>
+                        <div className="admin-field">
+                            <label className="admin-label">Mot de passe</label>
+                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="admin-input" required />
+                        </div>
+                        <button type="submit" disabled={loading} className="btn-primary" style={{ justifyContent: 'center', padding: '0.85rem', marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                            {loading ? 'Connexion...' : 'Accéder au dashboard →'}
+                        </button>
+                    </form>
+                </div>
             </div>
         );
     }
@@ -408,121 +406,74 @@ const AdminPage = () => {
         return matchesSearch && matchesCategory && matchesStatus;
     });
 
+    // Nav config
+    const NAV_ITEMS = [
+        { id: 'home',    icon: '⚡', label: 'Command Center', badge: null },
+        { id: 'crm',     icon: '👥', label: 'CRM', badge: freelance?.unreadCount > 0 ? freelance.unreadCount : null },
+        { id: 'finance', icon: '💶', label: 'Finance', badge: null },
+        { id: 'store',   icon: '🛒', label: 'Store', badge: null },
+        { id: 'gallery', icon: '🖼', label: 'Gallery', badge: null },
+    ];
+
+    const SECTION_LABELS = {
+        home:    'Command Center',
+        crm:     'CRM — Clients & Projets',
+        finance: 'Finance & Comptabilité',
+        store:   'Store — Templates',
+        gallery: 'Gallery — Projets Clients',
+    };
+
     return (
-        <div className="page-container container">
-            <div className="admin-header">
-                <h1 className="page-title mb-0">{t('admin.dashboard')}</h1>
-                <div className="flex gap-4 items-center">
-                    <div className="section-tabs glass-panel p-1 rounded-lg flex" style={{ flexWrap: 'wrap', gap: '2px' }}>
-                        {[
-                            { id: 'home',    label: '⚡ HOME' },
-                            { id: 'store',   label: '🛒 STORE' },
-                            { id: 'gallery', label: '🖼 GALLERY' },
-                            { id: 'crm',     label: '👥 CRM' },
-                            { id: 'finance', label: '💶 FINANCE' },
-                        ].map(s => (
-                            <button
-                                key={s.id}
-                                className={`px-4 py-2 rounded-md transition-all ${activeSection === s.id ? 'bg-accent text-black font-bold' : 'text-secondary hover:text-white'}`}
-                                onClick={() => setActiveSection(s.id)}
-                                style={{ fontSize: '0.8rem', letterSpacing: '1px' }}
-                            >
-                                {s.label}
-                            </button>
-                        ))}
-                    </div>
-                    <button onClick={logout} className="cta-secondary">Logout</button>
+        <div className="admin-os">
+
+            {/* ── SIDEBAR ──────────────────────────────────── */}
+            <aside className="admin-sidebar">
+                <div className="admin-sidebar-logo">
+                    <p style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '-0.5px' }}>MIDO</p>
+                    <p>ADMIN OS</p>
                 </div>
-            </div>
 
-            {/* ANALYTICS SECTION */}
-            {stats && (
-                <div className="glass-panel p-6 mb-8 border border-white/10" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 100%)' }}>
-                    <h3 className="text-xl mb-6 text-accent flex items-center gap-2">
-                        📊 Performance
-                    </h3>
+                <nav className="admin-nav">
+                    {NAV_ITEMS.map(item => (
+                        <button
+                            key={item.id}
+                            className={`admin-nav-item ${activeSection === item.id ? 'active' : ''}`}
+                            onClick={() => setActiveSection(item.id)}
+                        >
+                            <span className="nav-icon">{item.icon}</span>
+                            <span className="nav-label">{item.label}</span>
+                            {item.badge ? <span className="nav-badge">{item.badge}</span> : null}
+                        </button>
+                    ))}
+                </nav>
 
-                    <div className="stats-grid">
-                        {/* CARD 1: REVENUE */}
-                        <div className="stat-card">
-                            <span className="stat-label">Revenu Total</span>
-                            <span className="stat-value">{stats.total_revenue}€</span>
-                            <span className="stat-trend text-green-400">Lifetime</span>
-                        </div>
+                <div className="admin-sidebar-footer">
+                    <button className="admin-logout-btn" onClick={logout}>
+                        <span>🚪</span>
+                        <span>Déconnexion</span>
+                    </button>
+                </div>
+            </aside>
 
-                        {/* CARD 2: SALES */}
-                        <div className="stat-card">
-                            <span className="stat-label">Ventes Totales</span>
-                            <span className="stat-value">{stats.total_sales}</span>
-                            <span className="stat-trend text-blue-400">Transactions</span>
-                        </div>
+            {/* ── MAIN AREA ─────────────────────────────────── */}
+            <main className="admin-main">
 
-                        {/* CARD 3: AVG ORDER */}
-                        <div className="stat-card">
-                            <span className="stat-label">Panier Moyen</span>
-                            <span className="stat-value">
-                                {stats.total_sales > 0 ? (stats.total_revenue / stats.total_sales).toFixed(2) : 0}€
-                            </span>
-                            <span className="stat-trend text-purple-400">Avg / Order</span>
-                        </div>
-                    </div>
-
-                    {/* CHART & RECENT SALES */}
-                    <div className="analytics-details mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                        {/* CSS CHART */}
-                        <div className="chart-container">
-                            <h4 className="text-sm text-secondary mb-4 uppercase tracking-wider">Ventes 30 derniers jours</h4>
-                            <div className="simple-bar-chart">
-                                {stats.sales_by_date && stats.sales_by_date.length > 0 ? (
-                                    stats.sales_by_date.map((day, i) => (
-                                        <div key={i} className="chart-bar-col" title={`${day.date}: ${day.count} ventes (${day.total}€)`}>
-                                            <div
-                                                className="chart-bar"
-                                                style={{ height: `${Math.min(day.count * 20, 100)}%` }} // Simple scaling
-                                            ></div>
-                                            <span className="chart-date">{day.date.slice(5)}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-secondary text-sm italic">Pas de données récentes</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* RECENT TRANSACTIONS TABLE */}
-                        <div className="transactions-list">
-                            <h4 className="text-sm text-secondary mb-4 uppercase tracking-wider">Dernières Commandes</h4>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead>
-                                        <tr className="border-b border-white/10 text-secondary">
-                                            <th className="pb-2">Produit</th>
-                                            <th className="pb-2 text-right">Prix</th>
-                                            <th className="pb-2 text-right">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {stats.recent_sales && stats.recent_sales.length > 0 ? (
-                                            stats.recent_sales.map((sale) => (
-                                                <tr key={sale.id} className="border-b border-white/5 hover:bg-white/5">
-                                                    <td className="py-2 text-white/80 truncate max-w-[150px]">{sale.template_title}</td>
-                                                    <td className="py-2 text-right font-mono text-accent">{sale.price_paid}€</td>
-                                                    <td className="py-2 text-right text-xs text-secondary">
-                                                        {new Date(sale.created_at).toLocaleDateString()}
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr><td colSpan="3" className="py-4 text-center text-secondary">Aucune vente</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                {/* Top bar */}
+                <div className="admin-topbar">
+                    <span className="status-online" />
+                    <span className="admin-topbar-breadcrumb">
+                        admin.midodev.fr <span>/</span> {SECTION_LABELS[activeSection]}
+                    </span>
+                    <div className="admin-topbar-actions">
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-mono)' }}>
+                            {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                     </div>
                 </div>
-            )}
+
+                {/* Content */}
+                <div className="admin-content admin-section-enter">
+            {/* Analytics block removed — integrated into Command Center */}
 
             {activeSection === 'store' ? (
                 <div className="glass-panel admin-panel">
@@ -1158,8 +1109,11 @@ const AdminPage = () => {
                 .chart-bar:hover { opacity: 1; transform: scaleY(1.05); }
                 .chart-date { font-size: 0.65rem; color: var(--text-secondary); margin-top: 5px; }
             `}</style>
+                </div>
+            </main>
         </div>
     );
 };
+
 
 export default AdminPage;
