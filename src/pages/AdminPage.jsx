@@ -8,6 +8,7 @@ import AdminCommandCenter from '../components/AdminCommandCenter';
 import FinanceDashboard from '../components/FinanceDashboard';
 import AdminCRM from '../components/AdminCRM';
 import ChatPanel from '../components/ChatPanel';
+import ProjectViewer from '../components/ProjectViewer';
 import '../components/ChatViewer.css';
 import { initNotifications } from '../services/notificationService';
 import './AdminPage.css';
@@ -43,6 +44,9 @@ const AdminPage = () => {
     // Analytics State
     const [stats, setStats] = useState(null);
     const [statsLoading, setStatsLoading] = useState(true);
+    
+    // Project View State
+    const [selectedLiveUrl, setSelectedLiveUrl] = useState(null);
 
     // Fetch Stats on mount (if admin)
     useEffect(() => {
@@ -840,6 +844,16 @@ const AdminPage = () => {
                                     </div>
                                     <div className="card-footer" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                                         <span className="card-price mr-auto">{t.price}</span>
+                                        {t.demo_url && (
+                                            <button
+                                                onClick={() => setSelectedLiveUrl(t.demo_url)}
+                                                className="btn-primary"
+                                                style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
+                                                title="View Live"
+                                            >
+                                                👁 Voir
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => handleEdit(t)}
                                             className="cta-secondary"
@@ -893,6 +907,16 @@ const AdminPage = () => {
                                     </div>
                                     <p className="text-xs text-secondary mt-2 line-clamp-2">{p.description}</p>
                                     <div className="card-footer" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                        {p.preview_url && (
+                                            <button
+                                                onClick={() => setSelectedLiveUrl(p.preview_url)}
+                                                className="btn-primary"
+                                                style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
+                                                title="View Live"
+                                            >
+                                                👁 Voir
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => handleProjectEdit(p)}
                                             className="cta-secondary"
@@ -943,6 +967,15 @@ const AdminPage = () => {
                     </h3>
                     <FinanceDashboard />
                 </div>
+            )}
+
+            {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
+            {selectedLiveUrl && (
+                <ProjectViewer
+                    url={selectedLiveUrl}
+                    title="Aperçu Live"
+                    onClose={() => setSelectedLiveUrl(null)}
+                />
             )}
 
             <style>{`
@@ -1109,6 +1142,15 @@ const AdminPage = () => {
                 .chart-bar:hover { opacity: 1; transform: scaleY(1.05); }
                 .chart-date { font-size: 0.65rem; color: var(--text-secondary); margin-top: 5px; }
             `}</style>
+
+            {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
+            {selectedLiveUrl && (
+                <ProjectViewer
+                    url={selectedLiveUrl}
+                    title="Aperçu du projet"
+                    onClose={() => setSelectedLiveUrl(null)}
+                />
+            )}
                 </div>
             </main>
         </div>

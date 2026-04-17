@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { Plus, Eye, ShoppingBag, X, Search } from 'lucide-react';
+import ProjectViewer from '../components/ProjectViewer';
 import './PageStyles.css';
 import SEO from '../components/SEO';
 
@@ -25,6 +26,7 @@ const StorePage = () => {
     const [activeSubCategory, setActiveSubCategory] = useState("All");
     const [addedItems, setAddedItems] = useState({});
     const [selectedItem, setSelectedItem] = useState(null);
+    const [viewingLiveUrl, setViewingLiveUrl] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('newest'); // 'popular', 'newest', 'price-asc', 'price-desc'
@@ -247,16 +249,17 @@ const StorePage = () => {
                                     <div className="card-overlay">
                                         <button className="view-btn">{t('store.view_details')}</button>
                                         {item.demo_url && (
-                                            <a
-                                                href={item.demo_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
+                                            <button
                                                 className="demo-btn-card"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setViewingLiveUrl(item.demo_url.startsWith('http') ? item.demo_url : `https://${item.demo_url}`);
+                                                }}
                                                 title={t('store.live_preview')}
+                                                style={{ border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.5)', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0.5rem', borderRadius: '50%' }}
                                             >
                                                 <Eye size={20} />
-                                            </a>
+                                            </button>
                                         )}
                                     </div>
 
@@ -355,11 +358,12 @@ const StorePage = () => {
                                     </button>
 
                                     {selectedItem.demo_url && (
-                                        <a
-                                            href={selectedItem.demo_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                        <button
                                             className="modal-demo-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setViewingLiveUrl(selectedItem.demo_url.startsWith('http') ? selectedItem.demo_url : `https://${selectedItem.demo_url}`);
+                                            }}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -368,7 +372,8 @@ const StorePage = () => {
                                                 border: '1px solid rgba(255,255,255,0.2)',
                                                 borderRadius: '8px',
                                                 color: 'white',
-                                                textDecoration: 'none',
+                                                background: 'transparent',
+                                                cursor: 'pointer',
                                                 fontWeight: '600',
                                                 transition: 'all 0.3s ease'
                                             }}
@@ -377,13 +382,22 @@ const StorePage = () => {
                                         >
                                             <Eye size={20} />
                                             {t('store.live_preview')}
-                                        </a>
+                                        </button>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
+            {viewingLiveUrl && (
+                <ProjectViewer
+                    url={viewingLiveUrl}
+                    title="Aperçu du site"
+                    onClose={() => setViewingLiveUrl(null)}
+                />
             )}
         </div>
     );

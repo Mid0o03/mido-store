@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFreelance } from '../context/FreelanceContext';
 import { generateQuotePDF } from '../services/pdfService';
 import QuoteBuilder from './QuoteBuilder';
+import ProjectViewer from './ProjectViewer';
 
 const STATUS_STYLES = {
     draft:    { label: 'Brouillon',  color: '#888',    bg: 'rgba(128,128,128,0.1)' },
@@ -21,7 +22,8 @@ const AdminCRM = () => {
     const [clientForm, setClientForm] = useState({ name: '', email: '', phone: '', company: '', status: 'active' });
     const [saving, setSaving] = useState(false);
     const [showProjectForm, setShowProjectForm] = useState(false);
-    const [projectForm, setProjectForm] = useState({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '' });
+    const [projectForm, setProjectForm] = useState({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '', preview_url: '' });
+    const [viewingProjectUrl, setViewingProjectUrl] = useState(null);
 
     // ── CLIENT FORM ───────────────────────────────────────
     const openClientForm = (client = null) => {
@@ -49,7 +51,7 @@ const AdminCRM = () => {
         await addFreelanceProject(projectForm);
         setSaving(false);
         setShowProjectForm(false);
-        setProjectForm({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '' });
+        setProjectForm({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '', preview_url: '' });
     };
 
     const PROJECT_STATUSES = {
@@ -88,15 +90,15 @@ const AdminCRM = () => {
                         <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
                             {clients.length} CLIENT{clients.length !== 1 ? 'S' : ''}
                         </h3>
-                        <button className="cta-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }} onClick={() => openClientForm()}>
+                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => openClientForm()}>
                             + Nouveau client
                         </button>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {clients.length === 0 ? (
-                            <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.9rem' }}>Aucun client. Commence par en ajouter un !</p>
+                            <div className="admin-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                                <p className="admin-empty">Aucun client. Commence par en ajouter un !</p>
                             </div>
                         ) : clients.map(client => {
                             const projectCount = freelanceProjects.filter(p => p.client_id === client.id).length;
@@ -131,11 +133,12 @@ const AdminCRM = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button className="cta-secondary" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }} onClick={() => openClientForm(client)}>
+                                        <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }} onClick={() => openClientForm(client)}>
                                             ✏️
                                         </button>
                                         <button
-                                            style={{ background: 'none', border: 'none', color: 'rgba(255,80,80,0.6)', cursor: 'pointer', fontSize: '0.9rem' }}
+                                            className="btn-danger"
+                                            style={{ padding: '0.35rem 0.75rem' }}
                                             onClick={() => { if (window.confirm(`Supprimer ${client.name} ?`)) deleteClient(client.id); }}
                                         >
                                             ✕
@@ -155,15 +158,15 @@ const AdminCRM = () => {
                         <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
                             {freelanceProjects.length} PROJET{freelanceProjects.length !== 1 ? 'S' : ''}
                         </h3>
-                        <button className="cta-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }} onClick={() => setShowProjectForm(true)}>
+                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => setShowProjectForm(true)}>
                             + Nouveau projet
                         </button>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {freelanceProjects.length === 0 ? (
-                            <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.9rem' }}>Aucun projet. Crée-en un depuis un client !</p>
+                            <div className="admin-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                                <p className="admin-empty">Aucun projet. Crée-en un depuis un client !</p>
                             </div>
                         ) : freelanceProjects.map(proj => {
                             const st = PROJECT_STATUSES[proj.status] || PROJECT_STATUSES.discovery;
@@ -241,6 +244,16 @@ const AdminCRM = () => {
                                                 <option key={key} value={key}>{val.icon} {val.label}</option>
                                             ))}
                                         </select>
+                                        {proj.preview_url && (
+                                            <button
+                                                onClick={() => setViewingProjectUrl(proj.preview_url)}
+                                                className="btn-secondary"
+                                                style={{ marginLeft: 'auto', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                                                title="Voir le site en live"
+                                            >
+                                                👁 Voir site
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -256,15 +269,15 @@ const AdminCRM = () => {
                         <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
                             {quotes.length} DEVIS
                         </h3>
-                        <button className="cta-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }} onClick={() => { setEditQuote(null); setShowQuoteBuilder(true); }}>
+                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => { setEditQuote(null); setShowQuoteBuilder(true); }}>
                             + Nouveau devis
                         </button>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {quotes.length === 0 ? (
-                            <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.9rem' }}>Aucun devis. Crée ton premier devis !</p>
+                            <div className="admin-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                                <p className="admin-empty">Aucun devis. Crée ton premier devis !</p>
                             </div>
                         ) : quotes.map(quote => {
                             const s = STATUS_STYLES[quote.status] || STATUS_STYLES.draft;
@@ -286,11 +299,11 @@ const AdminCRM = () => {
                                         <p style={{ fontSize: '0.7rem', color: 'rgba(57,255,20,0.6)', fontFamily: 'var(--font-mono)' }}>Acompte : {parseFloat(quote.deposit_amount || 0).toFixed(0)} €</p>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                        <button className="filter-btn" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
+                                        <button className="btn-secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
                                             onClick={() => generateQuotePDF(quote, quote.clients)}>
                                             📄 PDF
                                         </button>
-                                        <button className="cta-secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
+                                        <button className="btn-secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
                                             onClick={() => { setEditQuote(quote); setShowQuoteBuilder(true); }}>
                                             ✏️
                                         </button>
@@ -305,7 +318,7 @@ const AdminCRM = () => {
             {/* ── CLIENT FORM MODAL ────────────────────────── */}
             {showClientForm && (
                 <div className="modal-overlay" onClick={() => setShowClientForm(false)}>
-                    <div className="modal-content glass-panel" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+                    <div className="modal-content admin-panel" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                             <h2 style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '1rem', letterSpacing: '2px' }}>
                                 {editClient ? 'MODIFIER LE CLIENT' : 'NOUVEAU CLIENT'}
@@ -322,7 +335,7 @@ const AdminCRM = () => {
                                 <option value="active">Actif</option>
                                 <option value="archived">Archivé</option>
                             </select>
-                            <button type="submit" className="cta-primary" disabled={saving} style={{ marginTop: '0.5rem' }}>
+                            <button type="submit" className="btn-primary" disabled={saving} style={{ marginTop: '0.5rem' }}>
                                 {saving ? 'Enregistrement...' : editClient ? 'Mettre à jour' : 'Créer le client'}
                             </button>
                         </form>
@@ -333,7 +346,7 @@ const AdminCRM = () => {
             {/* ── PROJECT FORM MODAL ───────────────────────── */}
             {showProjectForm && (
                 <div className="modal-overlay" onClick={() => setShowProjectForm(false)}>
-                    <div className="modal-content glass-panel" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+                    <div className="modal-content admin-panel" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                             <h2 style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '1rem', letterSpacing: '2px' }}>NOUVEAU PROJET</h2>
                             <button className="close-btn" onClick={() => setShowProjectForm(false)}>✕</button>
@@ -348,8 +361,9 @@ const AdminCRM = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                                 <input className="admin-input" type="number" placeholder="Budget total (€)" value={projectForm.total_amount} onChange={e => setProjectForm(p => ({ ...p, total_amount: e.target.value }))} />
                                 <input className="admin-input" type="date" value={projectForm.deadline} onChange={e => setProjectForm(p => ({ ...p, deadline: e.target.value }))} style={{ colorScheme: 'dark' }} />
+                                <input className="admin-input" style={{ gridColumn: '1 / -1' }} type="url" placeholder="URL de prévisualisation (ex: https://...)" value={projectForm.preview_url || ''} onChange={e => setProjectForm(p => ({ ...p, preview_url: e.target.value }))} />
                             </div>
-                            <button type="submit" className="cta-primary" disabled={saving}>
+                            <button type="submit" className="btn-primary" disabled={saving}>
                                 {saving ? 'Création...' : 'Créer le projet'}
                             </button>
                         </form>
@@ -363,6 +377,14 @@ const AdminCRM = () => {
                     clients={clients}
                     editQuote={editQuote}
                     onClose={() => { setShowQuoteBuilder(false); setEditQuote(null); }}
+                />
+            )}
+            {/* ── PROJECT VIEWER ───────────────────────────── */}
+            {viewingProjectUrl && (
+                <ProjectViewer
+                    url={viewingProjectUrl}
+                    title="Aperçu du Projet"
+                    onClose={() => setViewingProjectUrl(null)}
                 />
             )}
         </div>

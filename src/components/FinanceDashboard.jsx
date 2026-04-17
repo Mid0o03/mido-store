@@ -37,15 +37,15 @@ const BarChart = ({ data, maxValue }) => (
 );
 
 const StatCard = ({ label, value, sub, color = 'var(--accent-color)', icon }) => (
-    <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
+    <div className="admin-stat-card">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>{label}</span>
-            <span style={{ fontSize: '1.2rem' }}>{icon}</span>
+            <span className="admin-stat-label">{label}</span>
+            <span style={{ fontSize: '1.2rem', opacity: 0.8 }}>{icon}</span>
         </div>
-        <div style={{ fontSize: '1.6rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)', lineHeight: 1.2 }}>
+        <div className="admin-stat-value" style={{ color }}>
             {value}
         </div>
-        {sub && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.4rem' }}>{sub}</p>}
+        {sub && <p className="admin-stat-trend">{sub}</p>}
     </div>
 );
 
@@ -140,109 +140,64 @@ const FinanceDashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
             {/* ── KPI CARDS ─────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                <StatCard
-                    label="CA CE MOIS"
-                    value={`${financials.revenueThisMonth.toFixed(0)} €`}
-                    sub="Factures encaissées"
-                    icon="📈"
-                    color="var(--accent-color)"
-                />
-                <StatCard
-                    label="CA CETTE ANNÉE"
-                    value={`${financials.revenueThisYear.toFixed(0)} €`}
-                    sub={`${thisYear}`}
-                    icon="💶"
-                    color="var(--accent-color)"
-                />
-                <StatCard
-                    label="EN ATTENTE"
-                    value={`${pendingAmount.toFixed(0)} €`}
-                    sub="Factures non encaissées"
-                    icon="⏳"
-                    color={pendingAmount > 0 ? '#ffcc44' : 'rgba(255,255,255,0.4)'}
-                />
-                <StatCard
-                    label="CHARGES SOCIALES EST."
-                    value={`${financials.socialChargesEstimate.toFixed(0)} €`}
-                    sub={`21.5% AE (services BIC)`}
-                    icon="🏛"
-                    color="#ff8c44"
-                />
-                <StatCard
-                    label="DÉPENSES"
-                    value={`${financials.totalExpenses.toFixed(0)} €`}
-                    sub={`${thisYear}`}
-                    icon="💸"
-                    color="rgba(255,100,100,0.9)"
-                />
-                <StatCard
-                    label="NET ESTIMÉ"
-                    value={`${financials.netEstimate.toFixed(0)} €`}
-                    sub="Après charges & dépenses"
-                    icon="✅"
-                    color={financials.netEstimate > 0 ? 'var(--accent-color)' : '#ff8080'}
-                />
+            <div className="admin-stats-grid">
+                <StatCard label="CA CE MOIS" value={`${financials.revenueThisMonth.toFixed(0)} €`} sub="Factures encaissées" icon="📈" color="var(--accent-color)" />
+                <StatCard label="CA CETTE ANNÉE" value={`${financials.revenueThisYear.toFixed(0)} €`} sub={`${thisYear}`} icon="💶" color="var(--accent-color)" />
+                <StatCard label="EN ATTENTE" value={`${pendingAmount.toFixed(0)} €`} sub="Factures non encaissées" icon="⏳" color={pendingAmount > 0 ? '#ffcc44' : 'rgba(255,255,255,0.4)'} />
+                <StatCard label="CHARGES SOCIALES EST." value={`${financials.socialChargesEstimate.toFixed(0)} €`} sub={`21.5% AE (services BIC)`} icon="🏛" color="#ff8c44" />
+                <StatCard label="DÉPENSES" value={`${financials.totalExpenses.toFixed(0)} €`} sub={`${thisYear}`} icon="💸" color="rgba(255,100,100,0.9)" />
+                <StatCard label="NET ESTIMÉ" value={`${financials.netEstimate.toFixed(0)} €`} sub="Après charges & dépenses" icon="✅" color={financials.netEstimate > 0 ? 'var(--accent-color)' : '#ff8080'} />
             </div>
 
             {/* ── REVENUE CHART ─────────────────────────────── */}
-            <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
-                <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '1.5rem' }}>
-                    CA MENSUEL — 6 DERNIERS MOIS
-                </h3>
+            <div className="admin-panel">
+                <h3 className="admin-stat-label" style={{ marginBottom: '1.5rem' }}>CA MENSUEL — 6 DERNIERS MOIS</h3>
                 <BarChart data={monthlyData} maxValue={chartMax} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="admin-form-grid">
 
                 {/* ── EXPENSE FORM ──────────────────────────── */}
-                <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>
-                        AJOUTER UNE DÉPENSE
-                    </h3>
+                <div className="admin-panel">
+                    <h3 className="admin-stat-label" style={{ marginBottom: '1.25rem' }}>AJOUTER UNE DÉPENSE</h3>
                     <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div className="admin-form-grid">
                             <input type="date" className="admin-input" value={expenseForm.date}
                                 onChange={e => setExpenseForm(p => ({ ...p, date: e.target.value }))}
-                                style={{ colorScheme: 'dark', fontSize: '0.85rem' }} />
-                            <select className="admin-input" value={expenseForm.category}
-                                onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value }))}
-                                style={{ fontSize: '0.85rem' }}>
+                                style={{ colorScheme: 'dark' }} />
+                            <select className="admin-select" value={expenseForm.category}
+                                onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value }))}>
                                 {EXPENSE_CATEGORIES.map(cat => (
                                     <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
                                 ))}
                             </select>
                         </div>
                         <input type="text" className="admin-input" placeholder="Description (ex: Abonnement Figma)" value={expenseForm.description}
-                            onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))}
-                            style={{ fontSize: '0.85rem' }} required />
+                            onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))} required />
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <input type="number" className="admin-input" placeholder="Montant (€)" min="0" step="0.01" value={expenseForm.amount}
-                                onChange={e => setExpenseForm(p => ({ ...p, amount: e.target.value }))}
-                                style={{ fontSize: '0.85rem' }} required />
-                            <button type="submit" className="cta-primary" disabled={savingExpense} style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                                onChange={e => setExpenseForm(p => ({ ...p, amount: e.target.value }))} required />
+                            <button type="submit" className="btn-primary" disabled={savingExpense}>
                                 {savingExpense ? '...' : '+ Ajouter'}
                             </button>
                         </div>
                     </form>
 
                     {/* Expense breakdown by category */}
-                    <div style={{ marginTop: '1.5rem' }}>
-                        <p style={{ fontSize: '0.65rem', letterSpacing: '1px', color: 'rgba(255,255,255,0.3)', marginBottom: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                            RÉPARTITION {thisYear}
-                        </p>
+                    <div style={{ marginTop: '2rem' }}>
+                        <p className="admin-stat-label" style={{ marginBottom: '0.75rem' }}>RÉPARTITION {thisYear}</p>
                         {EXPENSE_CATEGORIES.map(cat => {
                             const amount = expenseByCategory[cat] || 0;
                             const total = financials.totalExpenses || 1;
                             const pct = Math.round((amount / total) * 100);
                             return amount > 0 ? (
                                 <div key={cat} style={{ marginBottom: '0.6rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                         <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>{CATEGORY_LABELS[cat]}</span>
-                                        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.5)' }}>{amount.toFixed(0)} €</span>
+                                        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.7)' }}>{amount.toFixed(0)} €</span>
                                     </div>
-                                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }}>
-                                        <div style={{ height: '100%', width: `${pct}%`, background: 'rgba(255,100,100,0.7)', borderRadius: '2px', transition: 'width 0.5s' }} />
+                                    <div className="admin-progress">
+                                        <div className="admin-progress-fill" style={{ width: `${pct}%`, background: 'rgba(255,100,100,0.7)' }} />
                                     </div>
                                 </div>
                             ) : null;
@@ -251,55 +206,49 @@ const FinanceDashboard = () => {
                 </div>
 
                 {/* ── EXPENSE LIST ──────────────────────────── */}
-                <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: '420px' }}>
-                    <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>
-                        DERNIÈRES DÉPENSES
-                    </h3>
+                <div className="admin-panel" style={{ overflowY: 'auto', maxHeight: '420px', padding: '1.5rem' }}>
+                    <h3 className="admin-stat-label" style={{ marginBottom: '1.25rem' }}>DERNIÈRES DÉPENSES</h3>
                     {expenses.length === 0 ? (
-                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem' }}>Aucune dépense enregistrée.</p>
+                        <p className="admin-empty" style={{ padding: '1rem 0' }}>Aucune dépense enregistrée.</p>
                     ) : (
-                        expenses.slice(0, 20).map(expense => (
-                            <div key={expense.id} style={{
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '0.6rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)',
-                            }}>
-                                <div>
-                                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.1rem' }}>{expense.description}</p>
-                                    <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>
-                                        {CATEGORY_LABELS[expense.category]} · {new Date(expense.date).toLocaleDateString('fr-FR')}
-                                    </p>
+                        <div className="admin-list">
+                            {expenses.slice(0, 20).map(expense => (
+                                <div key={expense.id} className="admin-list-item" style={{ cursor: 'default' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.1rem' }}>{expense.description}</p>
+                                        <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                                            {CATEGORY_LABELS[expense.category]} · {new Date(expense.date).toLocaleDateString('fr-FR')}
+                                        </p>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <span style={{ fontFamily: 'var(--font-mono)', color: '#ff8080', fontWeight: 600, fontSize: '0.9rem' }}>
+                                            -{expense.amount} €
+                                        </span>
+                                        <button
+                                            onClick={() => deleteExpense(expense.id)}
+                                            className="btn-ghost"
+                                            title="Supprimer"
+                                            style={{ color: '#ff8080' }}
+                                        >✕</button>
+                                    </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <span style={{ fontFamily: 'var(--font-mono)', color: 'rgba(255,100,100,0.9)', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
-                                        -{expense.amount} €
-                                    </span>
-                                    <button
-                                        onClick={() => deleteExpense(expense.id)}
-                                        style={{ background: 'none', border: 'none', color: 'rgba(255,80,80,0.5)', cursor: 'pointer', fontSize: '0.85rem', padding: '0' }}
-                                        title="Supprimer"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        ))
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* ── INVOICES LIST ─────────────────────────────── */}
-            <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                    <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
-                        FACTURES
-                    </h3>
+            <div className="admin-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 className="admin-stat-label" style={{ marginBottom: 0 }}>FACTURES</h3>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         {['all', 'pending', 'paid', 'overdue'].map(status => (
                             <button
                                 key={status}
                                 onClick={() => setInvoiceFilter(status)}
-                                className={`filter-btn ${invoiceFilter === status ? 'active' : ''}`}
-                                style={{ padding: '0.3rem 0.75rem', fontSize: '0.7rem' }}
+                                className={invoiceFilter === status ? 'btn-secondary' : 'btn-ghost'}
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderColor: invoiceFilter === status ? 'var(--accent-color)' : 'transparent', color: invoiceFilter === status ? 'var(--accent-color)' : 'inherit' }}
                             >
                                 {status === 'all' ? 'Toutes' : status === 'pending' ? 'En attente' : status === 'paid' ? 'Payées' : 'En retard'}
                             </button>
@@ -308,57 +257,45 @@ const FinanceDashboard = () => {
                 </div>
 
                 {filteredInvoices.length === 0 ? (
-                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>Aucune facture.</p>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {filteredInvoices.map(inv => {
-                            const statusStyles = {
-                                paid: { color: '#39ff14', bg: 'rgba(57,255,20,0.1)', label: '✓ Payée' },
-                                pending: { color: '#ffcc44', bg: 'rgba(255,200,50,0.1)', label: '⏳ En attente' },
-                                overdue: { color: '#ff5050', bg: 'rgba(255,80,80,0.1)', label: '⚠ En retard' },
-                                draft: { color: '#888', bg: 'rgba(128,128,128,0.1)', label: 'Brouillon' },
-                                sent: { color: '#44aaff', bg: 'rgba(68,170,255,0.1)', label: '✉ Envoyée' },
-                            };
-                            const s = statusStyles[inv.status] || statusStyles.draft;
-
-                            return (
-                                <div key={inv.id} style={{
-                                    display: 'flex', alignItems: 'center', gap: '1rem',
-                                    padding: '0.75rem 1rem',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    borderRadius: '10px',
-                                    border: '1px solid rgba(255,255,255,0.05)',
-                                }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.2rem' }}>
-                                            {inv.invoice_number}
-                                        </p>
-                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-                                            {inv.clients?.name || '—'} · {inv.type === 'deposit' ? 'Acompte' : 'Solde'}
-                                        </p>
-                                    </div>
-                                    <span style={{
-                                        padding: '0.25rem 0.6rem', borderRadius: '6px',
-                                        background: s.bg, color: s.color,
-                                        fontSize: '0.7rem', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap'
-                                    }}>
-                                        {s.label}
-                                    </span>
-                                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-color)', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                        {parseFloat(inv.total || 0).toFixed(0)} €
-                                    </span>
-                                    <button
-                                        onClick={() => generateInvoicePDF(inv, inv.clients)}
-                                        className="filter-btn"
-                                        style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem', whiteSpace: 'nowrap' }}
-                                        title="Télécharger PDF"
-                                    >
-                                        📄 PDF
-                                    </button>
-                                </div>
-                            );
-                        })}
+                    <div className="admin-empty">
+                        <div className="admin-empty-icon">📄</div>
+                        <p>Aucune facture avec ce statut.</p>
                     </div>
+                ) : (
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nº Facture</th>
+                                <th>Client (Type)</th>
+                                <th>Statut</th>
+                                <th style={{ textAlign: 'right' }}>Total</th>
+                                <th style={{ textAlign: 'right' }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredInvoices.map(inv => {
+                                const statusClass = inv.status;
+                                const statusLabels = {
+                                    paid: 'Payée', pending: 'En attente', overdue: 'En retard', draft: 'Brouillon', sent: 'Envoyée'
+                                };
+                                return (
+                                    <tr key={inv.id}>
+                                        <td style={{ fontFamily: 'var(--font-mono)' }}>{inv.invoice_number}</td>
+                                        <td>{inv.clients?.name || '—'} <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem' }}>({inv.type === 'deposit' ? 'Acompte' : 'Solde'})</span></td>
+                                        <td><span className={`status-badge ${statusClass}`}>{statusLabels[statusClass] || 'Doc'}</span></td>
+                                        <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent-color)' }}>
+                                            {parseFloat(inv.total || 0).toFixed(0)} €
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <button onClick={() => generateInvoicePDF(inv, inv.clients)} className="btn-secondary" style={{ display: 'inline-flex', padding: '0.4rem 0.8rem' }} title="Télécharger PDF">
+                                                📄 PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 )}
             </div>
         </div>

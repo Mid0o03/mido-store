@@ -7,26 +7,20 @@ import { supabase } from '../supabase';
 const KpiCard = ({ label, value, icon, color = 'var(--accent-color)', onClick, pulse }) => (
     <div
         onClick={onClick}
-        className="glass-panel"
+        className="admin-stat-card"
         style={{
-            padding: '1.25rem 1.5rem',
             cursor: onClick ? 'pointer' : 'default',
             border: pulse ? `1px solid ${color}44` : undefined,
-            transition: 'all 0.2s',
-            position: 'relative',
-            overflow: 'hidden',
         }}
-        onMouseEnter={e => onClick && (e.currentTarget.style.transform = 'translateY(-2px)')}
-        onMouseLeave={e => onClick && (e.currentTarget.style.transform = 'translateY(0)')}
     >
         {pulse && (
             <div style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: color, animation: 'pulse-dot 2s ease-in-out infinite' }} />
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.6rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>{label}</span>
-            <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+            <span className="admin-stat-label">{label}</span>
+            <span style={{ fontSize: '1.2rem', opacity: 0.8 }}>{icon}</span>
         </div>
-        <p style={{ fontSize: '1.5rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)', margin: 0 }}>{value}</p>
+        <p className="admin-stat-value" style={{ color }}>{value}</p>
     </div>
 );
 
@@ -233,8 +227,8 @@ const AdminCommandCenter = ({ onNavigate }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
 
                 {/* ── TODO LIST ─────────────────────────────── */}
-                <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '0.7rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>
+                <div className="admin-panel">
+                    <h3 className="admin-stat-label" style={{ marginBottom: '1.25rem' }}>
                         🔥 À FAIRE MAINTENANT
                     </h3>
 
@@ -255,7 +249,7 @@ const AdminCommandCenter = ({ onNavigate }) => {
                                     <button
                                         onClick={() => handleSendQuote(q)}
                                         disabled={sendingQuote === q.id}
-                                        className="cta-primary"
+                                        className="btn-primary"
                                         style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
                                     >
                                         {sendingQuote === q.id ? '...' : '✉ Envoyer'}
@@ -290,7 +284,7 @@ const AdminCommandCenter = ({ onNavigate }) => {
                                     <button
                                         onClick={() => handleInviteClient(c)}
                                         disabled={sendingInvite === c.id}
-                                        className="cta-secondary"
+                                        className="btn-secondary"
                                         style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
                                     >
                                         {sendingInvite === c.id ? '...' : '📨 Inviter'}
@@ -302,8 +296,8 @@ const AdminCommandCenter = ({ onNavigate }) => {
                 </div>
 
                 {/* ── ACTIVITY FEED ─────────────────────────── */}
-                <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '0.7rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>
+                <div className="admin-panel">
+                    <h3 className="admin-stat-label" style={{ marginBottom: '1.25rem' }}>
                         ⏱ ACTIVITÉ RÉCENTE
                     </h3>
 
@@ -317,12 +311,12 @@ const AdminCommandCenter = ({ onNavigate }) => {
 
             {/* ── PROJECTS OVERVIEW ─────────────────────────── */}
             {activeProjects.length > 0 && (
-                <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                <div className="admin-panel">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.7rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                        <h3 className="admin-stat-label">
                             🏗 PROJETS EN COURS
                         </h3>
-                        <button onClick={() => onNavigate('crm')} style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                        <button onClick={() => onNavigate('crm')} className="btn-ghost" style={{ fontSize: '0.8rem', color: 'var(--accent-color)' }}>
                             Voir tous →
                         </button>
                     </div>

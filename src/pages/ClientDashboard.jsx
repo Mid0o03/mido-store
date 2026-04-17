@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ChatPanel from '../components/ChatPanel';
 import DepositPayment from '../components/DepositPayment';
 import { generateInvoicePDF } from '../services/pdfService';
+import ProjectViewer from '../components/ProjectViewer';
 import '../components/ChatViewer.css';
 import './PageStyles.css';
 
@@ -35,6 +36,8 @@ const ClientDashboard = () => {
 
     // Client Data
     const [clientProfile, setClientProfile] = useState(null);
+
+    const [viewingProjectUrl, setViewingProjectUrl] = useState(null);
     const [activeProject, setActiveProject] = useState(null);
     const [projectTasks, setProjectTasks] = useState([]);
     const [invoices, setInvoices] = useState([]);
@@ -423,7 +426,12 @@ const ClientDashboard = () => {
                                         {activeProject.preview_url && (
                                             <div>
                                                 <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', fontFamily: 'var(--font-mono)' }}>APERÇU</p>
-                                                <a href={activeProject.preview_url} target="_blank" rel="noopener noreferrer" style={{ color: '#44aaff', fontSize: '0.85rem' }}>Voir le site →</a>
+                                                <button
+                                                    onClick={() => setViewingProjectUrl(activeProject.preview_url)}
+                                                    style={{ background: 'none', border: 'none', color: '#44aaff', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
+                                                >
+                                                    Voir le site →
+                                                </button>
                                             </div>
                                         )}
                                     </div>
@@ -821,6 +829,14 @@ const ChatPanelClient = ({ projectId, projectTitle, clientEmail }) => {
                     {sending ? '...' : '➤'}
                 </button>
             </form>
+            {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
+            {viewingProjectUrl && (
+                <ProjectViewer
+                    url={viewingProjectUrl}
+                    title="Aperçu de ton projet"
+                    onClose={() => setViewingProjectUrl(null)}
+                />
+            )}
         </div>
     );
 };

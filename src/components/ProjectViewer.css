@@ -1,0 +1,342 @@
+/* ── PROJECT VIEWER MODAL ───────────────────────────── */
+
+@keyframes viewerFadeIn {
+    0% { opacity: 0; backdrop-filter: blur(0px); }
+    100% { opacity: 1; backdrop-filter: blur(16px); }
+}
+
+@keyframes viewerPopIn {
+    0% { transform: scale(0.95) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.viewer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(8, 8, 16, 0.7);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: viewerFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.viewer-wrapper {
+    width: 95%;
+    max-width: 1600px;
+    height: 94vh;
+    background: rgba(15, 15, 20, 0.6);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: viewerPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    position: relative;
+}
+
+/* Subtle glow behind the wrapper */
+.viewer-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at top, rgba(57, 255, 20, 0.05), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.viewer-topbar {
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 10;
+    backdrop-filter: blur(20px);
+}
+
+.viewer-url-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.4rem 1.2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    font-family: var(--font-mono, monospace);
+    max-width: 350px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: all 0.2s;
+}
+.viewer-url-bar:hover {
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.viewer-device-switcher {
+    display: flex;
+    gap: 0.25rem;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.3rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.viewer-device-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.viewer-device-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.viewer-device-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-color, #39ff14);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.viewer-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.viewer-action-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    width: 38px;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-size: 1rem;
+}
+.viewer-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.viewer-close {
+    background: rgba(255, 59, 48, 0.1);
+    border-color: rgba(255, 59, 48, 0.2);
+    color: #ff3b30;
+}
+.viewer-close:hover {
+    background: #ff3b30;
+    color: #fff;
+    border-color: #ff3b30;
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.viewer-stage {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+    padding: 3rem 2rem;
+    position: relative;
+    z-index: 10;
+    /* Mac-like subtle geometric background */
+    background-color: transparent;
+    background-image: 
+        radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px, 10px 10px;
+    background-position: 0 0, 0 0;
+}
+
+.viewer-device-frame {
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #fff;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+    will-change: width, height, border-radius;
+}
+
+/* DESKTOP Specific Styling (Mac OS Window vibe) */
+.viewer-device-frame.device-desktop {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    padding-top: 32px; /* Space for the top bar */
+    background: #0f0f11;
+}
+
+.viewer-device-frame.device-desktop::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    background: #252528;
+    border-bottom: 1px solid #1a1a1a;
+    z-index: 5;
+}
+
+.viewer-device-frame.device-desktop::after {
+    /* The 3 macOS buttons */
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: 12px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5f56;
+    box-shadow: 
+        18px 0 0 #ffbd2e,
+        36px 0 0 #27c93f;
+    z-index: 10;
+}
+
+.viewer-device-frame.device-desktop iframe {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    background: #fff; /* Default iframe background */
+}
+
+/* MOBILE Specific Styling */
+.viewer-device-frame.device-mobile {
+    border: 14px solid #111;
+    border-radius: 46px;
+    box-shadow: 
+        0 0 0 2px #333, 
+        inset 0 0 0 2px #000,
+        0 40px 80px rgba(0,0,0,0.8);
+    background: #000;
+}
+
+.viewer-notch {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 32px;
+    background: #111;
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    box-shadow: inset 0 -1px 3px rgba(255,255,255,0.05);
+}
+
+.viewer-notch-speaker {
+    width: 44px;
+    height: 5px;
+    background: #222;
+    border-radius: 5px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.8);
+}
+
+.viewer-notch-camera {
+    width: 10px;
+    height: 10px;
+    background: #070707;
+    border-radius: 50%;
+    box-shadow: inset -2px -2px 4px rgba(255,255,255,0.05), inset 2px 2px 4px rgba(0,0,0,0.8);
+    position: relative;
+}
+/* Camera Lens Reflection */
+.viewer-notch-camera::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 3px;
+    height: 3px;
+    background: rgba(40, 60, 100, 0.4);
+    border-radius: 50%;
+}
+
+.viewer-home-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 5px;
+    background: #e5e5e5;
+    border-radius: 5px;
+    z-index: 20;
+    mix-blend-mode: difference;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+
+/* Loading Overlay inside Iframe */
+.viewer-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    z-index: 10;
+    gap: 1.5rem;
+}
+
+.viewer-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-top-color: var(--accent-color, #39ff14);
+    border-radius: 50%;
+    animation: viewer-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes viewer-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Iframe transition so it doesn't flicker hard */
+.viewer-device-frame iframe {
+    transition: opacity 0.3s;
+    background-color: #ffffff;
+}

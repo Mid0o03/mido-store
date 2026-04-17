@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import './ProjectViewer.css';
 
 const DEVICES = [
     {
@@ -59,6 +60,17 @@ const ProjectViewer = ({ url, title, onClose }) => {
         setIsLoading(false);
     };
 
+    // Prevent body scrolling when the viewer is open
+    useEffect(() => {
+        if (url) {
+            const originalStyle = window.getComputedStyle(document.body).overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalStyle;
+            };
+        }
+    }, [url]);
+
     if (!url) return null;
 
     return (
@@ -113,7 +125,12 @@ const ProjectViewer = ({ url, title, onClose }) => {
                 <div className="viewer-stage">
                     <div
                         className={`viewer-device-frame device-${activeDevice}`}
-                        style={device.frameStyle}
+                        style={{
+                            width: device.width,
+                            maxWidth: device.maxWidth,
+                            height: device.height,
+                            ...device.frameStyle,
+                        }}
                     >
                         {/* Mobile notch */}
                         {device.notch && (
