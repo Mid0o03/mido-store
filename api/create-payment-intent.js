@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { items, amount } = req.body;
+            const { items, amount, user_id, client_email, template_ids } = req.body;
 
             // In a real app, calculate amount on server based on items to avoid manipulation.
             const amountInCents = Math.round(amount * 100);
@@ -28,6 +28,14 @@ export default async function handler(req, res) {
                 automatic_payment_methods: {
                     enabled: true,
                 },
+                metadata: {
+                    type: 'store_purchase',
+                    user_id: user_id || '',
+                    template_ids: template_ids ? template_ids.join(',') : '', // store as comma separated
+                    client_email: client_email || ''
+                },
+                receipt_email: client_email || undefined,
+                description: `Achat Store Mido - ${template_ids?.length || items?.length || 0} template(s)`
             });
 
             res.status(200).json({

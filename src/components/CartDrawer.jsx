@@ -53,7 +53,10 @@ const CartDrawer = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cartItems,
-                    amount: cartTotal
+                    amount: cartTotal,
+                    user_id: clientUser?.id || '',
+                    client_email: clientUser?.email || '',
+                    template_ids: cartItems.map(item => item.id)
                 }),
             })
                 .then(async res => {
