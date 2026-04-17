@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { useFreelance } from '../context/FreelanceContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../supabase';
+import AdminCommandCenter from '../components/AdminCommandCenter';
+import FinanceDashboard from '../components/FinanceDashboard';
+import AdminCRM from '../components/AdminCRM';
+import ChatPanel from '../components/ChatPanel';
+import '../components/ChatViewer.css';
+import { initNotifications } from '../services/notificationService';
 import './PageStyles.css';
 
 const CATEGORIES = {
@@ -21,8 +28,12 @@ const TECH_STACKS = [
 
 const AdminPage = () => {
     const { session, isAdmin, login, logout } = useAuth();
-    const { templates, addTemplate, updateTemplate, deleteTemplate } = useData();
+    const { templates, projects, addTemplate, updateTemplate, deleteTemplate, addProject, updateProject, deleteProject } = useData();
+    const freelance = useFreelance();
     const { t } = useLanguage();
+
+    // 'home' | 'store' | 'gallery' | 'crm' | 'finance'
+    const [activeSection, setActiveSection] = useState('home');
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -36,6 +47,8 @@ const AdminPage = () => {
     useEffect(() => {
         if (isAdmin && session) {
             fetchStats();
+            // Initialize browser notifications for admin
+            initNotifications();
         }
     }, [isAdmin, session]);
 
@@ -69,6 +82,20 @@ const AdminPage = () => {
         zip_file: null,
         demo_url: ''
     });
+
+    const [galleryFormData, setGalleryFormData] = useState({
+        title: '',
+        category: 'ecommerce',
+        description: '',
+        image_url: '',
+        image_file: null,
+        link: '',
+        status: 'published',
+        is_featured: false
+    });
+
+    const [editModeGallery, setEditModeGallery] = useState(false);
+    const [editingIdGallery, setEditingIdGallery] = useState(null);
 
     const [isDragging, setIsDragging] = useState(false);
     const [isDraggingZip, setIsDraggingZip] = useState(false);
@@ -269,6 +296,57 @@ const AdminPage = () => {
         }
     };
 
+    const handleProjectEdit = (project) => {
+        setEditModeGallery(true);
+        setEditingIdGallery(project.id);
+        setGalleryFormData({
+            title: project.title,
+            category: project.category,
+            description: project.description,
+            image_url: project.image_url,
+            image_file: null,
+            link: project.link,
+            status: project.status || 'published',
+            is_featured: project.is_featured || false
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleProjectCancelEdit = () => {
+        setEditModeGallery(false);
+        setEditingIdGallery(null);
+        setGalleryFormData({
+            title: '',
+            category: 'ecommerce',
+            description: '',
+            image_url: '',
+            image_file: null,
+            link: '',
+            status: 'published',
+            is_featured: false
+        });
+    };
+
+    const handleProjectSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        let result;
+        if (editModeGallery) {
+            result = await updateProject(editingIdGallery, galleryFormData);
+        } else {
+            result = await addProject(galleryFormData);
+        }
+
+        setLoading(false);
+        if (result.success) {
+            alert(editModeGallery ? "Project updated successfully!" : "Project added successfully!");
+            handleProjectCancelEdit();
+        } else {
+            alert(`Error saving project: ${result.message}`);
+        }
+    };
+
     if (loading) return <div className="flex-center">Loading...</div>;
 
     if (!session || !isAdmin) {
@@ -334,7 +412,27 @@ const AdminPage = () => {
         <div className="page-container container">
             <div className="admin-header">
                 <h1 className="page-title mb-0">{t('admin.dashboard')}</h1>
-                <button onClick={logout} className="cta-secondary">Logout</button>
+                <div className="flex gap-4 items-center">
+                    <div className="section-tabs glass-panel p-1 rounded-lg flex" style={{ flexWrap: 'wrap', gap: '2px' }}>
+                        {[
+                            { id: 'home',    label: '⚡ HOME' },
+                            { id: 'store',   label: '🛒 STORE' },
+                            { id: 'gallery', label: '🖼 GALLERY' },
+                            { id: 'crm',     label: '👥 CRM' },
+                            { id: 'finance', label: '💶 FINANCE' },
+                        ].map(s => (
+                            <button
+                                key={s.id}
+                                className={`px-4 py-2 rounded-md transition-all ${activeSection === s.id ? 'bg-accent text-black font-bold' : 'text-secondary hover:text-white'}`}
+                                onClick={() => setActiveSection(s.id)}
+                                style={{ fontSize: '0.8rem', letterSpacing: '1px' }}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={logout} className="cta-secondary">Logout</button>
+                </div>
             </div>
 
             {/* ANALYTICS SECTION */}
@@ -426,203 +524,310 @@ const AdminPage = () => {
                 </div>
             )}
 
-            <div className="glass-panel admin-panel">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-accent mb-0">{editMode ? `EDIT PRODUCT` : t('admin.add_product')}</h3>
-                    {editMode && (
-                        <button onClick={handleCancelEdit} className="text-secondary text-sm hover:text-white">
-                            CANCEL EDIT
-                        </button>
-                    )}
-                </div>
+            {activeSection === 'store' ? (
+                <div className="glass-panel admin-panel">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-accent mb-0">{editMode ? `EDIT PRODUCT` : t('admin.add_product')}</h3>
+                        {editMode && (
+                            <button onClick={handleCancelEdit} className="text-secondary text-sm hover:text-white">
+                                CANCEL EDIT
+                            </button>
+                        )}
+                    </div>
 
-                <form onSubmit={handleSubmit} className="admin-form">
-                    <input
-                        placeholder="Title"
-                        value={formData.title}
-                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                        className="admin-input"
-                        required
-                    />
-
-                    {/* PRICING TIER */}
-                    <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
-                        <select
-                            value={formData.price === 'Free' ? 'Free' : 'Premium'}
-                            onChange={(e) => {
-                                const isFree = e.target.value === 'Free';
-                                setFormData(prev => ({
-                                    ...prev,
-                                    price: isFree ? 'Free' : ''
-                                }));
-                            }}
+                    <form onSubmit={handleSubmit} className="admin-form">
+                        <input
+                            placeholder="Title"
+                            value={formData.title}
+                            onChange={e => setFormData({ ...formData, title: e.target.value })}
                             className="admin-input"
-                            style={{ width: '150px' }}
+                            required
+                        />
+
+                        {/* PRICING TIER */}
+                        <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+                            <select
+                                value={formData.price === 'Free' ? 'Free' : 'Premium'}
+                                onChange={(e) => {
+                                    const isFree = e.target.value === 'Free';
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        price: isFree ? 'Free' : ''
+                                    }));
+                                }}
+                                className="admin-input"
+                                style={{ width: '150px' }}
+                            >
+                                <option value="Premium">Premium (€)</option>
+                                <option value="Free">Free</option>
+                            </select>
+
+                            {formData.price !== 'Free' && (
+                                <div className="price-input-wrapper" style={{ flex: 1 }}>
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        value={formData.price.replace('€', '')}
+                                        onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                        className="admin-input"
+                                        required={formData.price !== 'Free'}
+                                    />
+                                    <span className="currency-symbol">€</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <select
+                            value={formData.category}
+                            onChange={handleCategoryChange}
+                            className="admin-input"
                         >
-                            <option value="Premium">Premium (€)</option>
-                            <option value="Free">Free</option>
+                            <option value="Web">Web</option>
+                            <option value="App">App</option>
                         </select>
 
-                        {formData.price !== 'Free' && (
-                            <div className="price-input-wrapper" style={{ flex: 1 }}>
-                                <input
-                                    type="number"
-                                    placeholder="Price"
-                                    value={formData.price.replace('€', '')}
-                                    onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                    className="admin-input"
-                                    required={formData.price !== 'Free'}
-                                />
-                                <span className="currency-symbol">€</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <select
-                        value={formData.category}
-                        onChange={handleCategoryChange}
-                        className="admin-input"
-                    >
-                        <option value="Web">Web</option>
-                        <option value="App">App</option>
-                    </select>
-
-                    <select
-                        value={formData.subCategory}
-                        onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
-                        className="admin-input"
-                        required
-                    >
-                        {CATEGORIES[formData.category]?.map(sub => (
-                            <option key={sub} value={sub}>{sub}</option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={formData.status}
-                        onChange={e => setFormData({ ...formData, status: e.target.value })}
-                        className="admin-input"
-                    >
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                        <option value="archived">Archived</option>
-                    </select>
-
-                    <div className="flex items-center admin-input">
-                        <input
-                            type="checkbox"
-                            id="featured"
-                            checked={formData.is_featured}
-                            onChange={e => setFormData({ ...formData, is_featured: e.target.checked })}
-                            className="mr-2"
-                        />
-                        <label htmlFor="featured" className="cursor-pointer select-none">Feature on Homepage</label>
-                    </div>
-
-                    {/* Drag & Drop Zone - IMAGE */}
-                    <div
-                        className={`image-drop-zone ${isDragging ? 'dragging' : ''}`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        {formData.image_url ? (
-                            <div className="preview-container">
-                                <img src={formData.image_url} alt="Preview" className="image-preview" />
-                                <button
-                                    type="button"
-                                    className="remove-image-btn"
-                                    onClick={() => setFormData({ ...formData, image_url: '', image_file: null })}
-                                >
-                                    X
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="drop-placeholder">
-                                <p className="mb-2">Drag & Drop Image (JPG/PNG)</p>
-                                <span className="text-secondary text-sm">Or paste URL below</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* NEW: Drag & Drop Zone - ZIP FILE */}
-                    <div
-                        className={`image-drop-zone ${isDraggingZip ? 'dragging' : ''}`}
-                        onDragOver={(e) => { e.preventDefault(); setIsDraggingZip(true); }}
-                        onDragLeave={(e) => { e.preventDefault(); setIsDraggingZip(false); }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDraggingZip(false);
-                            const file = e.dataTransfer.files[0];
-                            if (file && (file.name.endsWith('.zip') || file.type.includes('zip'))) {
-                                console.log("📦 ZIP dropped, replacing existing:", formData.file_url ? "Yes" : "No");
-                                setFormData({ ...formData, zip_file: file, file_url: file.name });
-                            } else {
-                                alert("Please upload a .zip file");
-                            }
-                        }}
-                    >
-                        {formData.file_url ? (
-                            <div className="preview-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                                <div className="text-4xl">📦</div>
-                                <span className="text-sm mt-2 text-accent truncate w-full px-2" title={formData.file_url}>
-                                    {formData.zip_file ? `Ready to upload: ${formData.zip_file.name}` : `Linked: ${formData.file_url.substring(0, 15)}...`}
-                                </span>
-                                <button
-                                    type="button"
-                                    className="remove-image-btn"
-                                    onClick={() => setFormData({ ...formData, file_url: null, zip_file: null })}
-                                    style={{ top: '-10px', right: '-10px' }}
-                                >
-                                    X
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="drop-placeholder">
-                                <p className="mb-2">Drag & Drop Product File (.ZIP)</p>
-                                <span className="text-secondary text-sm">Max 1GB</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <input
-                        placeholder="Image URL (Unsplash, etc.)"
-                        value={formData.image_url}
-                        onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                        className="admin-input full-width"
-                    />
-
-                    <input
-                        placeholder="Live Demo URL (e.g. https://demo.mido.com)"
-                        value={formData.demo_url || ''}
-                        onChange={e => setFormData({ ...formData, demo_url: e.target.value })}
-                        className="admin-input full-width"
-                        style={{ borderColor: formData.demo_url ? 'var(--accent-color)' : '' }}
-                    />
-
-                    <div className="full-width">
-                        <label className="text-sm text-secondary mb-2 block">Tech Stack</label>
-                        <div className="tech-tags-container">
-                            {TECH_STACKS.map(tech => (
-                                <button
-                                    type="button"
-                                    key={tech}
-                                    className={`tech-chip ${currentTechs.includes(tech) ? 'active' : ''}`}
-                                    onClick={() => toggleTech(tech)}
-                                >
-                                    {tech}
-                                </button>
+                        <select
+                            value={formData.subCategory}
+                            onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
+                            className="admin-input"
+                            required
+                        >
+                            {CATEGORIES[formData.category]?.map(sub => (
+                                <option key={sub} value={sub}>{sub}</option>
                             ))}
+                        </select>
+
+                        <select
+                            value={formData.status}
+                            onChange={e => setFormData({ ...formData, status: e.target.value })}
+                            className="admin-input"
+                        >
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                            <option value="archived">Archived</option>
+                        </select>
+
+                        <div className="flex items-center admin-input">
+                            <input
+                                type="checkbox"
+                                id="featured"
+                                checked={formData.is_featured}
+                                onChange={e => setFormData({ ...formData, is_featured: e.target.checked })}
+                                className="mr-2"
+                            />
+                            <label htmlFor="featured" className="cursor-pointer select-none">Feature on Homepage</label>
                         </div>
+
+                        {/* Drag & Drop Zone - IMAGE */}
+                        <div
+                            className={`image-drop-zone ${isDragging ? 'dragging' : ''}`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                        >
+                            {formData.image_url ? (
+                                <div className="preview-container">
+                                    <img src={formData.image_url} alt="Preview" className="image-preview" />
+                                    <button
+                                        type="button"
+                                        className="remove-image-btn"
+                                        onClick={() => setFormData({ ...formData, image_url: '', image_file: null })}
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="drop-placeholder">
+                                    <p className="mb-2">Drag & Drop Image (JPG/PNG)</p>
+                                    <span className="text-secondary text-sm">Or paste URL below</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* NEW: Drag & Drop Zone - ZIP FILE */}
+                        <div
+                            className={`image-drop-zone ${isDraggingZip ? 'dragging' : ''}`}
+                            onDragOver={(e) => { e.preventDefault(); setIsDraggingZip(true); }}
+                            onDragLeave={(e) => { e.preventDefault(); setIsDraggingZip(false); }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                setIsDraggingZip(false);
+                                const file = e.dataTransfer.files[0];
+                                if (file && (file.name.endsWith('.zip') || file.type.includes('zip'))) {
+                                    console.log("📦 ZIP dropped, replacing existing:", formData.file_url ? "Yes" : "No");
+                                    setFormData({ ...formData, zip_file: file, file_url: file.name });
+                                } else {
+                                    alert("Please upload a .zip file");
+                                }
+                            }}
+                        >
+                            {formData.file_url ? (
+                                <div className="preview-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div className="text-4xl">📦</div>
+                                    <span className="text-sm mt-2 text-accent truncate w-full px-2" title={formData.file_url}>
+                                        {formData.zip_file ? `Ready to upload: ${formData.zip_file.name}` : `Linked: ${formData.file_url.substring(0, 15)}...`}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="remove-image-btn"
+                                        onClick={() => setFormData({ ...formData, file_url: null, zip_file: null })}
+                                        style={{ top: '-10px', right: '-10px' }}
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="drop-placeholder">
+                                    <p className="mb-2">Drag & Drop Product File (.ZIP)</p>
+                                    <span className="text-secondary text-sm">Max 1GB</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <input
+                            placeholder="Image URL (Unsplash, etc.)"
+                            value={formData.image_url}
+                            onChange={e => setFormData({ ...formData, image_url: e.target.value })}
+                            className="admin-input full-width"
+                        />
+
+                        <input
+                            placeholder="Live Demo URL (e.g. https://demo.mido.com)"
+                            value={formData.demo_url || ''}
+                            onChange={e => setFormData({ ...formData, demo_url: e.target.value })}
+                            className="admin-input full-width"
+                            style={{ borderColor: formData.demo_url ? 'var(--accent-color)' : '' }}
+                        />
+
+                        <div className="full-width">
+                            <label className="text-sm text-secondary mb-2 block">Tech Stack</label>
+                            <div className="tech-tags-container">
+                                {TECH_STACKS.map(tech => (
+                                    <button
+                                        type="button"
+                                        key={tech}
+                                        className={`tech-chip ${currentTechs.includes(tech) ? 'active' : ''}`}
+                                        onClick={() => toggleTech(tech)}
+                                    >
+                                        {tech}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+                            <button type="submit" className="cta-primary w-full" disabled={loading}>
+                                {loading ? (editMode ? 'UPDATING...' : 'SAVING...') : (editMode ? 'UPDATE PRODUCT' : 'ADD TO STORE')}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            ) : (
+                <div className="glass-panel admin-panel">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-accent mb-0">{editModeGallery ? `EDIT PROJECT` : `ADD NEW PROJECT`}</h3>
+                        {editModeGallery && (
+                            <button onClick={handleProjectCancelEdit} className="text-secondary text-sm hover:text-white">
+                                CANCEL EDIT
+                            </button>
+                        )}
                     </div>
 
-                    <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
-                        <button type="submit" className="cta-primary w-full" disabled={loading}>
-                            {loading ? (editMode ? 'UPDATING...' : 'SAVING...') : (editMode ? 'UPDATE PRODUCT' : 'ADD TO STORE')}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    <form onSubmit={handleProjectSubmit} className="admin-form">
+                        <input
+                            placeholder="Project Title"
+                            value={galleryFormData.title}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, title: e.target.value })}
+                            className="admin-input full-width"
+                            required
+                        />
+
+                        <select
+                            value={galleryFormData.category}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, category: e.target.value })}
+                            className="admin-input"
+                        >
+                            <option value="ecommerce">E-Commerce</option>
+                            <option value="vitrine">Vitrine</option>
+                            <option value="mobile">Mobile App</option>
+                        </select>
+
+                        <select
+                            value={galleryFormData.status}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, status: e.target.value })}
+                            className="admin-input"
+                        >
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                        </select>
+
+                        <textarea
+                            placeholder="Short Description"
+                            value={galleryFormData.description}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, description: e.target.value })}
+                            className="admin-input full-width"
+                            rows="3"
+                        ></textarea>
+
+                        {/* Project Image Drop Zone */}
+                        <div
+                            className={`image-drop-zone full-width ${isDragging ? 'dragging' : ''}`}
+                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                setIsDragging(false);
+                                const file = e.dataTransfer.files[0];
+                                if (file && file.type.startsWith('image/')) {
+                                    setGalleryFormData({ ...galleryFormData, image_url: URL.createObjectURL(file), image_file: file });
+                                }
+                            }}
+                        >
+                            {galleryFormData.image_url ? (
+                                <div className="preview-container">
+                                    <img src={galleryFormData.image_url} alt="Preview" className="image-preview" />
+                                    <button type="button" className="remove-image-btn" onClick={() => setGalleryFormData({ ...galleryFormData, image_url: '', image_file: null })}>X</button>
+                                </div>
+                            ) : (
+                                <div className="drop-placeholder">
+                                    <p>Drag & Drop Gallery Mockup</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <input
+                            placeholder="Project Image URL (Optional)"
+                            value={galleryFormData.image_url}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, image_url: e.target.value })}
+                            className="admin-input full-width"
+                        />
+
+                        <input
+                            placeholder="External Site Link (Optional)"
+                            value={galleryFormData.link}
+                            onChange={e => setGalleryFormData({ ...galleryFormData, link: e.target.value })}
+                            className="admin-input full-width"
+                        />
+
+                        <div className="flex items-center admin-input">
+                            <input
+                                type="checkbox"
+                                id="featured-gallery"
+                                checked={galleryFormData.is_featured}
+                                onChange={e => setGalleryFormData({ ...galleryFormData, is_featured: e.target.checked })}
+                                className="mr-2"
+                            />
+                            <label htmlFor="featured-gallery">Feature on Homepage</label>
+                        </div>
+
+                        <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+                            <button type="submit" className="cta-primary w-full" disabled={loading}>
+                                {editModeGallery ? 'UPDATE PROJECT' : 'ADD TO GALLERY'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             {/* Search & Filter Bar */}
             <div className="glass-panel p-4 mb-6 sticky top-20 z-10 backdrop-blur-md border border-white/10 rounded-xl">
@@ -663,63 +868,131 @@ const AdminPage = () => {
             </div>
 
             <div className="store-grid">
-                {filteredTemplates.length > 0 ? (
-                    filteredTemplates.map(t => (
-                        <div key={t.id} className="store-card glass-panel cursor-default">
-                            {t.is_featured && <div className="absolute top-2 right-2 text-yellow-400 text-xl z-10" title="Featured">★</div>}
-                            <div className="card-preview">
-                                <div className="preview-placeholder" style={{ backgroundImage: t.image_url ? `url(${t.image_url})` : 'none' }}>
-                                    {t.status === 'draft' && <span className="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded shadow">DRAFT</span>}
-                                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                                        <span>👁️</span> {t.views || 0}
+                {activeSection === 'store' ? (
+                    filteredTemplates.length > 0 ? (
+                        filteredTemplates.map(t => (
+                            <div key={t.id} className="store-card glass-panel cursor-default">
+                                {t.is_featured && <div className="absolute top-2 right-2 text-yellow-400 text-xl z-10" title="Featured">★</div>}
+                                <div className="card-preview">
+                                    <div className="preview-placeholder" style={{ backgroundImage: t.image_url ? `url(${t.image_url})` : 'none' }}>
+                                        {t.status === 'draft' && <span className="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded shadow">DRAFT</span>}
+                                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                                            <span>👁️</span> {t.views || 0}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="card-content">
+                                    <h4 className="card-title">{t.title}</h4>
+                                    <div className="card-tags">
+                                        <span className="tech-tag">{t.category}</span>
+                                        <span className="tech-tag">{t.sub_category || t.subCategory}</span>
+                                    </div>
+                                    <div className="card-footer" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                        <span className="card-price mr-auto">{t.price}</span>
+                                        <button
+                                            onClick={() => handleEdit(t)}
+                                            className="cta-secondary"
+                                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
+                                        >
+                                            EDIT
+                                        </button>
+                                        <button
+                                            onClick={() => handleDuplicate(t)}
+                                            className="cta-secondary"
+                                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
+                                            title="Duplicate"
+                                        >
+                                            📑
+                                        </button>
+                                        <button
+                                            onClick={() => { if (window.confirm('Delete?')) deleteTemplate(t.id); }}
+                                            className="text-red font-mono delete-btn"
+                                        >
+                                            X
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div className="card-content">
-                                <h4 className="card-title">{t.title}</h4>
-                                <div className="card-tags">
-                                    <span className="tech-tag">{t.category}</span>
-                                    <span className="tech-tag">{t.sub_category || t.subCategory}</span>
+                        ))
+                    ) : (
+                        <div className="text-center w-full py-10 glass-panel col-span-full">
+                            <p className="text-xl text-secondary">No products found matching your filters.</p>
+                            <button
+                                className="cta-secondary mt-4"
+                                onClick={() => { setSearchTerm(''); setFilterCategory('All'); setFilterStatus('All'); }}
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    )
+                ) : (
+                    projects && projects.length > 0 ? (
+                        projects.map(p => (
+                            <div key={p.id} className="store-card glass-panel cursor-default">
+                                {p.is_featured && <div className="absolute top-2 right-2 text-yellow-400 text-xl z-10" title="Featured">★</div>}
+                                <div className="card-preview">
+                                    <div className="preview-placeholder" style={{ backgroundImage: p.image_url ? `url(${p.image_url})` : 'none' }}>
+                                        {p.status === 'draft' && <span className="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded shadow">DRAFT</span>}
+                                    </div>
                                 </div>
-                                <div className="card-footer" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                                    <span className="card-price mr-auto">{t.price}</span>
-                                    <button
-                                        onClick={() => handleEdit(t)}
-                                        className="cta-secondary"
-                                        style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
-                                    >
-                                        EDIT
-                                    </button>
-                                    <button
-                                        onClick={() => handleDuplicate(t)}
-                                        className="cta-secondary"
-                                        style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
-                                        title="Duplicate"
-                                    >
-                                        📑
-                                    </button>
-                                    <button
-                                        onClick={() => { if (window.confirm('Delete?')) deleteTemplate(t.id); }}
-                                        className="text-red font-mono delete-btn"
-                                    >
-                                        X
-                                    </button>
+                                <div className="card-content">
+                                    <h4 className="card-title">{p.title}</h4>
+                                    <div className="card-tags">
+                                        <span className="tech-tag">{p.category}</span>
+                                    </div>
+                                    <p className="text-xs text-secondary mt-2 line-clamp-2">{p.description}</p>
+                                    <div className="card-footer" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            onClick={() => handleProjectEdit(p)}
+                                            className="cta-secondary"
+                                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}
+                                        >
+                                            EDIT
+                                        </button>
+                                        <button
+                                            onClick={() => { if (window.confirm('Delete?')) deleteProject(p.id); }}
+                                            className="text-red font-mono delete-btn"
+                                            style={{ marginLeft: 'auto' }}
+                                        >
+                                            X
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                        ))
+                    ) : (
+                        <div className="text-center w-full py-10 glass-panel col-span-full">
+                            <p className="text-xl text-secondary">No projects in gallery yet.</p>
                         </div>
-                    ))
-                ) : (
-                    <div className="text-center w-full py-10 glass-panel col-span-full">
-                        <p className="text-xl text-secondary">No products found matching your filters.</p>
-                        <button
-                            className="cta-secondary mt-4"
-                            onClick={() => { setSearchTerm(''); setFilterCategory('All'); setFilterStatus('All'); }}
-                        >
-                            Clear Filters
-                        </button>
-                    </div>
+                    )
                 )}
             </div>
+
+            {/* ── HOME / COMMAND CENTER ─────────────────────── */}
+            {activeSection === 'home' && (
+                <AdminCommandCenter onNavigate={setActiveSection} />
+            )}
+
+            {/* ── CRM SECTION ─────────────────────────────── */}
+
+            {activeSection === 'crm' && (
+                <div className="glass-panel admin-panel">
+                    <h3 style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', letterSpacing: '2px', marginBottom: '1.5rem' }}>
+                        👥 CRM — CLIENTS, PROJETS & DEVIS
+                    </h3>
+                    <AdminCRM />
+                </div>
+            )}
+
+            {/* ── FINANCE SECTION ──────────────────────────── */}
+            {activeSection === 'finance' && (
+                <div className="glass-panel admin-panel">
+                    <h3 style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', letterSpacing: '2px', marginBottom: '1.5rem' }}>
+                        💶 FINANCES — TABLEAU DE BORD
+                    </h3>
+                    <FinanceDashboard />
+                </div>
+            )}
 
             <style>{`
                 .flex-center { display: flex; justify-content: center; align-items: center; min-height: 60vh; }

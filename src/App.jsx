@@ -1,21 +1,41 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
-import Home from './pages/Home';
-import StorePage from './pages/StorePage';
-import LabPage from './pages/LabPage';
-import ContactPage from './pages/ContactPage';
-import AdminPage from './pages/AdminPage';
-import ClientDashboard from './pages/ClientDashboard';
-import ClientLoginPage from './pages/ClientLoginPage';
-import LegalPage from './pages/LegalPage';
+import CartDrawer from './components/CartDrawer';
+import Footer from './components/Footer';
+import Lenis from 'lenis';
 import { DataProvider } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CartProvider } from './context/CartContext';
-import CartDrawer from './components/CartDrawer';
-import Lenis from 'lenis';
-import Footer from './components/Footer';
+import { FreelanceProvider } from './context/FreelanceContext';
+
+// Lazy load all pages for maximum performance
+const Home = lazy(() => import('./pages/Home'));
+const StorePage = lazy(() => import('./pages/StorePage'));
+const GalleryPage = lazy(() => import('./pages/GalleryPage'));
+const LabPage = lazy(() => import('./pages/LabPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
+const ClientLoginPage = lazy(() => import('./pages/ClientLoginPage'));
+const LegalPage = lazy(() => import('./pages/LegalPage'));
+
+// Premium loading skeleton while lazy components load
+const PageLoader = () => (
+    <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '80vh', flexDirection: 'column', gap: '1.5rem'
+    }}>
+        <div style={{
+            width: '48px', height: '48px', borderRadius: '50%',
+            border: '3px solid rgba(255,255,255,0.1)',
+            borderTopColor: 'var(--accent-color, #39ff14)',
+            animation: 'spin 0.8s linear infinite'
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+);
 
 // Use Navigate instead of redirect for cleaner v6 routing
 import { Navigate } from 'react-router-dom';
@@ -72,28 +92,32 @@ function App() {
     <Router>
       <LanguageProvider>
         <AuthProvider>
-          <DataProvider>
-            <CartProvider>
-              <div className="App">
-                <ScrollToTop />
+          <FreelanceProvider>
+            <DataProvider>
+              <CartProvider>
+                <div className="App">
+                  <ScrollToTop />
 
                 {isAdminSubdomain ? (
                   /* --- ADMIN APP --- */
                   <div className="admin-subdomain-wrapper">
-                    <Routes>
-                      <Route path="/" element={<AdminPage />} />
-                      {/* Fallback for any other path on admin subdomain -> go to root */}
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        <Route path="/" element={<AdminPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </Suspense>
                   </div>
                 ) : (
                   /* --- PUBLIC / CLIENT APP --- */
                   <>
                     <Header />
                     <CartDrawer />
+                    <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/store" element={<StorePage />} />
+                      <Route path="/gallery" element={<GalleryPage />} />
                       <Route path="/lab" element={<LabPage />} />
                       <Route path="/contact" element={<ContactPage />} />
 
@@ -125,13 +149,15 @@ function App() {
                       <Route path="/confidentialite" element={<LegalPage />} />
                       <Route path="/cgu" element={<LegalPage />} />
                     </Routes>
+                    </Suspense>
                     <Footer />
                   </>
                 )}
 
-              </div>
-            </CartProvider>
-          </DataProvider>
+                </div>
+              </CartProvider>
+            </DataProvider>
+          </FreelanceProvider>
         </AuthProvider>
       </LanguageProvider>
     </Router>

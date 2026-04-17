@@ -21,6 +21,7 @@ const Header = () => {
                 </Link>
                 <nav className="nav">
                     <NavLink to="/store" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t('nav.store')}</NavLink>
+                    <NavLink to="/gallery" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t('nav.gallery')}</NavLink>
                     <NavLink to="/lab" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t('nav.lab')}</NavLink>
                     <NavLink to="/contact" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t('nav.contact')}</NavLink>
                 </nav>

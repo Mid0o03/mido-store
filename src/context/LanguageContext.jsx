@@ -6,8 +6,29 @@ export const translations = {
     fr: {
         nav: {
             store: 'STORE',
+            gallery: 'GALLERY',
             lab: 'LAB',
             contact: 'CONTACT'
+        },
+        gallery: {
+            title_prefix: 'CLIENT',
+            title_highlight: 'SITES',
+            subtitle: 'NOS RÉALISATIONS RÉCENTES',
+            view_site: 'VOIR LE SITE',
+            coming_soon: 'PROCHAINEMENT',
+            categories: {
+                all: 'TOUT',
+                ecommerce: 'E-COMMERCE',
+                vitrine: 'VITRINE',
+                mobile: 'MOBILE'
+            },
+            projects: {
+                glow: { title: 'Touch of Glow', desc: 'E-commerce cosmétique haut de gamme avec une expérience immersive.' },
+                green: { title: 'French Green', desc: 'Boutique CBD premium alliant élégance et nature.' },
+                roshi: { title: 'Roshibarber', desc: 'Site vitrine moderne avec système de réservation intégré.' },
+                japan: { title: 'New Japan', desc: 'Expérience culinaire digitale pour un restaurant japonais raffiné.' },
+                krom: { title: 'KROM App', desc: 'Application mobile au design Néo-Brutaliste impactant.' }
+            }
         },
         hero: {
             subtitle: 'TEMPLATES IA & EXPÉRIENCES DIGITALES SUR-MESURE',
@@ -162,8 +183,29 @@ export const translations = {
     en: {
         nav: {
             store: 'STORE',
+            gallery: 'GALLERY',
             lab: 'LAB',
             contact: 'CONTACT'
+        },
+        gallery: {
+            title_prefix: 'CLIENT',
+            title_highlight: 'SITES',
+            subtitle: 'OUR RECENT WORKS',
+            view_site: 'VIEW SITE',
+            coming_soon: 'COMING SOON',
+            categories: {
+                all: 'ALL',
+                ecommerce: 'E-COMMERCE',
+                vitrine: 'VITRINE',
+                mobile: 'MOBILE'
+            },
+            projects: {
+                glow: { title: 'Touch of Glow', desc: 'High-end cosmetic e-commerce with immersive experience.' },
+                green: { title: 'French Green', desc: 'Premium CBD boutique blending elegance and nature.' },
+                roshi: { title: 'Roshibarber', desc: 'Modern vitrine with integrated booking system.' },
+                japan: { title: 'New Japan', desc: 'Digital culinary journey for a refined Japanese restaurant.' },
+                krom: { title: 'KROM App', desc: 'Mobile application with impactful Neo-Brutalist design.' }
+            }
         },
         hero: {
             subtitle: 'AI TEMPLATES & TAILORED DIGITAL EXPERIENCES',

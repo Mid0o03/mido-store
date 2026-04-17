@@ -5,6 +5,7 @@ const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
     const [templates, setTemplates] = useState([]);
+    const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const mockTemplates = [
@@ -90,7 +91,30 @@ export const Hero = () => (
 
     useEffect(() => {
         fetchTemplates();
+        fetchProjects();
     }, []);
+
+    const fetchProjects = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('projects')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if (error) throw error;
+            setProjects(data || []);
+        } catch (error) {
+            console.error("Error fetching projects:", error.message);
+            // Default projects we created
+            setProjects([
+                { id: 'glow', title: 'Touch of Glow', category: 'ecommerce', description: 'E-commerce cosmétique haut de gamme.', image_url: '/src/assets/gallery/glow.png', link: '#' },
+                { id: 'green', title: 'French Green', category: 'ecommerce', description: 'Boutique CBD premium.', image_url: '/src/assets/gallery/green.png', link: '#' },
+                { id: 'roshi', title: 'Roshibarber', category: 'vitrine', description: 'Site vitrine moderne.', image_url: '/src/assets/gallery/roshi.png', link: '#' },
+                { id: 'japan', title: 'New Japan', category: 'vitrine', description: 'Restaurant japonais raffiné.', image_url: '/src/assets/gallery/japan.png', link: '#' },
+                { id: 'krom', title: 'KROM App', category: 'mobile', description: 'Application mobile Néo-Brutaliste.', image_url: '/src/assets/gallery/krom.png', link: '#' }
+            ]);
+        }
+    };
 
     const fetchTemplates = async () => {
         try {
@@ -294,6 +318,85 @@ export const Hero = () => (
         }
     };
 
+    const addProject = async (projectData) => {
+        try {
+            let imageUrl = projectData.image_url;
+            if (projectData.image_file) {
+                imageUrl = await uploadImage(projectData.image_file);
+            }
+
+            const newProject = {
+                title: projectData.title,
+                category: projectData.category,
+                description: projectData.description,
+                image_url: imageUrl,
+                link: projectData.link,
+                status: projectData.status || 'published',
+                is_featured: projectData.is_featured || false
+            };
+
+            const { data, error } = await supabase
+                .from('projects')
+                .insert([newProject])
+                .select();
+
+            if (error) throw error;
+            if (data) setProjects([data[0], ...projects]);
+            return { success: true };
+        } catch (error) {
+            console.error("Error adding project:", error.message);
+            return { success: false, message: error.message };
+        }
+    };
+
+    const updateProject = async (id, updates) => {
+        try {
+            let imageUrl = updates.image_url;
+            if (updates.image_file) {
+                imageUrl = await uploadImage(updates.image_file);
+            }
+
+            const updatedData = {
+                title: updates.title,
+                category: updates.category,
+                description: updates.description,
+                image_url: imageUrl,
+                link: updates.link,
+                status: updates.status,
+                is_featured: updates.is_featured
+            };
+
+            const { data, error } = await supabase
+                .from('projects')
+                .update(updatedData)
+                .eq('id', id)
+                .select();
+
+            if (error) throw error;
+            if (data) setProjects(projects.map(p => p.id === id ? data[0] : p));
+            return { success: true };
+        } catch (error) {
+            console.error("Error updating project:", error.message);
+            return { success: false, message: error.message };
+        }
+    };
+
+    const deleteProject = async (id) => {
+        try {
+            const { error } = await supabase
+                .from('projects')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setProjects(projects.filter(p => p.id !== id));
+            return { success: true };
+        } catch (error) {
+            console.error("Error deleting project:", error.message);
+            return { success: false, message: error.message };
+        }
+    };
+
     const incrementViews = async (id) => {
         try {
             const { error } = await supabase.rpc('increment_views', { row_id: id });
@@ -311,11 +414,15 @@ export const Hero = () => (
     return (
         <DataContext.Provider value={{
             templates,
+            projects,
             loading,
             addTemplate,
             updateTemplate,
             deleteTemplate,
-            incrementViews
+            incrementViews,
+            addProject,
+            updateProject,
+            deleteProject
         }}>
             {children}
         </DataContext.Provider>
