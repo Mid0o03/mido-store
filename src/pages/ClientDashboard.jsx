@@ -526,7 +526,7 @@ const ClientDashboard = () => {
                 {activeTab === 'chat' && (
                     <div style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
                         {activeProject ? (
-                            <ChatPanel
+                            <ChatPanelClient
                                 projectId={activeProject.id}
                                 projectTitle={activeProject.title}
                                 clientEmail={clientUser?.email}
@@ -716,6 +716,14 @@ const ClientDashboard = () => {
                 onClose={() => setSelectedQuote(null)}
             />
         )}
+        {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
+        {viewingProjectUrl && (
+            <ProjectViewer
+                url={viewingProjectUrl}
+                title="Aperçu de ton projet"
+                onClose={() => setViewingProjectUrl(null)}
+            />
+        )}
     </>
     );
 };
@@ -839,14 +847,7 @@ const ChatPanelClient = ({ projectId, projectTitle, clientEmail }) => {
                     {sending ? '...' : '➤'}
                 </button>
             </form>
-            {/* ── PROJECT VIEWER MODAL ───────────────────────── */}
-            {viewingProjectUrl && (
-                <ProjectViewer
-                    url={viewingProjectUrl}
-                    title="Aperçu de ton projet"
-                    onClose={() => setViewingProjectUrl(null)}
-                />
-            )}
+            </form>
         </div>
     );
 };
