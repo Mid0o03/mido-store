@@ -3,6 +3,7 @@ import { useFreelance } from '../context/FreelanceContext';
 import { generateQuotePDF } from '../services/pdfService';
 import QuoteBuilder from './QuoteBuilder';
 import ProjectViewer from './ProjectViewer';
+import ChatPanel from './ChatPanel';
 
 const STATUS_STYLES = {
     draft:    { label: 'Brouillon',  color: '#888',    bg: 'rgba(128,128,128,0.1)' },
@@ -19,11 +20,13 @@ const AdminCRM = () => {
     const [editQuote, setEditQuote] = useState(null);
     const [showClientForm, setShowClientForm] = useState(false);
     const [editClient, setEditClient] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null); // The client whose profile is open
     const [clientForm, setClientForm] = useState({ name: '', email: '', phone: '', company: '', status: 'active' });
     const [saving, setSaving] = useState(false);
     const [showProjectForm, setShowProjectForm] = useState(false);
     const [projectForm, setProjectForm] = useState({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '', preview_url: '' });
     const [viewingProjectUrl, setViewingProjectUrl] = useState(null);
+    const [activeProjectChat, setActiveProjectChat] = useState(null); // Which project chat is open
 
     // ── CLIENT FORM ───────────────────────────────────────
     const openClientForm = (client = null) => {
@@ -67,24 +70,25 @@ const AdminCRM = () => {
         <div>
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '1rem' }}>
-                {[
-                    { id: 'clients',  label: '👥 Clients' },
-                    { id: 'projects', label: '🏗 Projets' },
-                    { id: 'quotes',   label: '📋 Devis' },
-                ].map(tab => (
+                <button
+                    onClick={() => { setSelectedClient(null); setActiveTab('clients'); }}
+                    className={`filter-btn ${!selectedClient ? 'active' : ''}`}
+                    style={{ fontSize: '0.85rem' }}
+                >
+                    👥 Base Clients
+                </button>
+                {selectedClient && (
                     <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`filter-btn ${activeTab === tab.id ? 'active' : ''}`}
-                        style={{ fontSize: '0.85rem' }}
+                        className="filter-btn active"
+                        style={{ fontSize: '0.85rem', background: 'rgba(57,255,20,0.1)', color: 'var(--accent-color)' }}
                     >
-                        {tab.label}
+                        👤 Profil : {selectedClient.name}
                     </button>
-                ))}
+                )}
             </div>
 
             {/* ── CLIENTS ─────────────────────────────────── */}
-            {activeTab === 'clients' && (
+            {activeTab === 'clients' && !selectedClient && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                         <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
@@ -108,7 +112,10 @@ const AdminCRM = () => {
                                     display: 'flex', alignItems: 'center', gap: '1rem',
                                     padding: '1rem 1.25rem', background: 'rgba(255,255,255,0.03)',
                                     borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)',
-                                }}>
+                                    cursor: 'pointer', transition: 'all 0.2s',
+                                }} onClick={() => setSelectedClient(client)}
+                                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
                                     <div style={{
                                         width: '44px', height: '44px', borderRadius: '50%',
                                         background: 'linear-gradient(135deg, rgba(57,255,20,0.3), rgba(0,212,255,0.2))',
@@ -133,13 +140,13 @@ const AdminCRM = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }} onClick={() => openClientForm(client)}>
+                                        <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }} onClick={(e) => { e.stopPropagation(); openClientForm(client); }}>
                                             ✏️
                                         </button>
                                         <button
                                             className="btn-danger"
                                             style={{ padding: '0.35rem 0.75rem' }}
-                                            onClick={() => { if (window.confirm(`Supprimer ${client.name} ?`)) deleteClient(client.id); }}
+                                            onClick={(e) => { e.stopPropagation(); if (window.confirm(`Supprimer ${client.name} ?`)) deleteClient(client.id); }}
                                         >
                                             ✕
                                         </button>
@@ -151,166 +158,109 @@ const AdminCRM = () => {
                 </div>
             )}
 
-            {/* ── PROJECTS ─────────────────────────────────── */}
-            {activeTab === 'projects' && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
-                            {freelanceProjects.length} PROJET{freelanceProjects.length !== 1 ? 'S' : ''}
-                        </h3>
-                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => setShowProjectForm(true)}>
-                            + Nouveau projet
-                        </button>
+            {/* ── CLIENT PROFILE VIEW ───────────────────────── */}
+            {selectedClient && (
+                <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                    <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(57,255,20,0.3), rgba(0,212,255,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.75rem', color: 'var(--accent-color)' }}>
+                                    {selectedClient.name?.[0]?.toUpperCase()}
+                                </div>
+                                <div>
+                                    <h2 style={{ fontSize: '1.5rem', color: '#fff', marginBottom: '0.2rem' }}>{selectedClient.name}</h2>
+                                    <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{selectedClient.email} {selectedClient.phone ? `· ${selectedClient.phone}` : ''}</p>
+                                    {selectedClient.company && <p style={{ color: 'var(--accent-color)', fontSize: '0.85rem', marginTop: '0.2rem' }}>🏢 {selectedClient.company}</p>}
+                                </div>
+                            </div>
+                            <button className="btn-secondary" onClick={() => openClientForm(selectedClient)}>✏️ Éditer Profil</button>
+                        </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {freelanceProjects.length === 0 ? (
-                            <div className="admin-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p className="admin-empty">Aucun projet. Crée-en un depuis un client !</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        
+                        {/* PROJECTS COLUMN */}
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ fontSize: '0.85rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>PROJETS</h3>
+                                <button className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => { setProjectForm(p => ({...p, client_id: selectedClient.id})); setShowProjectForm(true); }}>+ Projet</button>
                             </div>
-                        ) : freelanceProjects.map(proj => {
-                            const st = PROJECT_STATUSES[proj.status] || PROJECT_STATUSES.discovery;
-                            return (
-                                <div key={proj.id} style={{
-                                    padding: '1.25rem 1.5rem',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    borderRadius: '12px',
-                                    border: `1px solid ${st.color}22`,
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
-                                                <h4 style={{ color: '#fff', fontSize: '0.95rem' }}>{proj.title}</h4>
-                                                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '6px', background: `${st.color}18`, color: st.color, fontSize: '0.7rem', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
-                                                    {st.icon} {st.label}
-                                                </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {freelanceProjects.filter(p => p.client_id === selectedClient.id).length === 0 ? (
+                                    <p className="admin-empty" style={{ fontSize: '0.8rem', padding: '1.5rem' }}>Aucun projet pour ce client.</p>
+                                ) : freelanceProjects.filter(p => p.client_id === selectedClient.id).map(proj => {
+                                    const st = PROJECT_STATUSES[proj.status] || PROJECT_STATUSES.discovery;
+                                    return (
+                                        <div key={proj.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: `1px solid ${st.color}22` }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                                <h4 style={{ color: '#fff', fontSize: '0.9rem' }}>{proj.title}</h4>
+                                                <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', background: `${st.color}18`, color: st.color, fontSize: '0.65rem', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>{st.icon} {st.label}</span>
                                             </div>
-                                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
-                                                {proj.clients?.name || '—'} {proj.deadline ? `· Deadline: ${new Date(proj.deadline).toLocaleDateString('fr-FR')}` : ''}
-                                            </p>
-                                        </div>
-                                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                            {proj.total_amount > 0 && (
-                                                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-color)', fontWeight: 700 }}>{parseFloat(proj.total_amount).toFixed(0)} €</p>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                                <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>PROGRESSION</span>
+                                                <span style={{ fontSize: '0.65rem', color: st.color, fontFamily: 'var(--font-mono)' }}>{proj.progress || 0}%</span>
+                                            </div>
+                                            <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', marginBottom: '1rem' }}>
+                                                <div style={{ height: '100%', width: `${proj.progress || 0}%`, background: `linear-gradient(to right, ${st.color}66, ${st.color})`, borderRadius: '2px' }} />
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <select
+                                                    value={proj.status}
+                                                    onChange={e => updateFreelanceProject(proj.id, { status: e.target.value })}
+                                                    style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: st.color, borderRadius: '6px', padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer' }}
+                                                >
+                                                    {Object.entries(PROJECT_STATUSES).map(([key, val]) => (
+                                                        <option key={key} value={key}>{val.icon} {val.label}</option>
+                                                    ))}
+                                                </select>
+                                                <button onClick={() => setActiveProjectChat(activeProjectChat === proj.id ? null : proj.id)} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}>
+                                                    💬 Chat
+                                                </button>
+                                                {proj.preview_url && <button onClick={() => setViewingProjectUrl(proj.preview_url)} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}>👁 Live</button>}
+                                            </div>
+
+                                            {/* Chat Box Expansion */}
+                                            {activeProjectChat === proj.id && (
+                                                <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                                                    <div style={{ height: '400px', background: '#000', borderRadius: '8px', overflow: 'hidden' }}>
+                                                        <ChatPanel projectId={proj.id} projectTitle={proj.title} clientEmail={selectedClient.email} />
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-
-                                    {/* Progress bar */}
-                                    <div style={{ marginTop: '0.75rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>PROGRESSION</span>
-                                            <span style={{ fontSize: '0.65rem', color: st.color, fontFamily: 'var(--font-mono)' }}>{proj.progress || 0}%</span>
-                                        </div>
-                                        <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }}>
-                                            <div style={{
-                                                height: '100%',
-                                                width: `${proj.progress || 0}%`,
-                                                background: `linear-gradient(to right, ${st.color}66, ${st.color})`,
-                                                borderRadius: '2px',
-                                                transition: 'width 0.5s',
-                                            }} />
-                                        </div>
-                                    </div>
-
-                                    {/* Quick progress update */}
-                                    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        {[0, 25, 50, 75, 100].map(p => (
-                                            <button
-                                                key={p}
-                                                onClick={() => updateFreelanceProject(proj.id, { progress: p })}
-                                                style={{
-                                                    padding: '0.2rem 0.6rem', borderRadius: '6px', border: 'none',
-                                                    background: proj.progress === p ? st.color : 'rgba(255,255,255,0.06)',
-                                                    color: proj.progress === p ? '#000' : 'rgba(255,255,255,0.4)',
-                                                    fontSize: '0.7rem', cursor: 'pointer', fontFamily: 'var(--font-mono)',
-                                                }}
-                                            >
-                                                {p}%
-                                            </button>
-                                        ))}
-                                        {/* Status selector */}
-                                        <select
-                                            value={proj.status}
-                                            onChange={e => updateFreelanceProject(proj.id, { status: e.target.value })}
-                                            style={{
-                                                marginLeft: 'auto',
-                                                background: 'rgba(255,255,255,0.06)', border: 'none',
-                                                color: st.color, borderRadius: '6px', padding: '0.2rem 0.5rem',
-                                                fontSize: '0.7rem', cursor: 'pointer',
-                                            }}
-                                        >
-                                            {Object.entries(PROJECT_STATUSES).map(([key, val]) => (
-                                                <option key={key} value={key}>{val.icon} {val.label}</option>
-                                            ))}
-                                        </select>
-                                        {proj.preview_url && (
-                                            <button
-                                                onClick={() => setViewingProjectUrl(proj.preview_url)}
-                                                className="btn-secondary"
-                                                style={{ marginLeft: 'auto', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-                                                title="Voir le site en live"
-                                            >
-                                                👁 Voir site
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* ── QUOTES ───────────────────────────────────── */}
-            {activeTab === 'quotes' && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
-                            {quotes.length} DEVIS
-                        </h3>
-                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => { setEditQuote(null); setShowQuoteBuilder(true); }}>
-                            + Nouveau devis
-                        </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {quotes.length === 0 ? (
-                            <div className="admin-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p className="admin-empty">Aucun devis. Crée ton premier devis !</p>
+                                    );
+                                })}
                             </div>
-                        ) : quotes.map(quote => {
-                            const s = STATUS_STYLES[quote.status] || STATUS_STYLES.draft;
-                            return (
-                                <div key={quote.id} style={{
-                                    display: 'flex', alignItems: 'center', gap: '1rem',
-                                    padding: '0.75rem 1.25rem', background: 'rgba(255,255,255,0.03)',
-                                    borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)',
-                                }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.2rem' }}>{quote.quote_number}</p>
-                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{quote.clients?.name || '—'} {quote.valid_until ? `· Valable jusqu'au ${new Date(quote.valid_until).toLocaleDateString('fr-FR')}` : ''}</p>
-                                    </div>
-                                    <span style={{ padding: '0.2rem 0.6rem', borderRadius: '6px', background: s.bg, color: s.color, fontSize: '0.7rem', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
-                                        {s.label}
-                                    </span>
-                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-color)', fontWeight: 700, fontSize: '0.9rem' }}>{parseFloat(quote.total || 0).toFixed(0)} €</p>
-                                        <p style={{ fontSize: '0.7rem', color: 'rgba(57,255,20,0.6)', fontFamily: 'var(--font-mono)' }}>Acompte : {parseFloat(quote.deposit_amount || 0).toFixed(0)} €</p>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                        <button className="btn-secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
-                                            onClick={() => generateQuotePDF(quote, quote.clients)}>
-                                            📄 PDF
-                                        </button>
-                                        <button className="btn-secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
-                                            onClick={() => { setEditQuote(quote); setShowQuoteBuilder(true); }}>
-                                            ✏️
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        </div>
+
+                        {/* QUOTES COLUMN */}
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ fontSize: '0.85rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>DEVIS</h3>
+                                <button className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => { setEditQuote({ client_id: selectedClient.id }); setShowQuoteBuilder(true); }}>+ Devis</button>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {quotes.filter(q => q.client_id === selectedClient.id).length === 0 ? (
+                                    <p className="admin-empty" style={{ fontSize: '0.8rem', padding: '1.5rem' }}>Aucun devis pour ce client.</p>
+                                ) : quotes.filter(q => q.client_id === selectedClient.id).map(quote => {
+                                    const s = STATUS_STYLES[quote.status] || STATUS_STYLES.draft;
+                                    return (
+                                        <div key={quote.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{quote.quote_number}</p>
+                                                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-color)', fontWeight: 700, fontSize: '0.85rem', marginTop: '0.2rem' }}>{parseFloat(quote.total || 0).toFixed(0)} €</p>
+                                            </div>
+                                            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '4px', background: s.bg, color: s.color, fontSize: '0.65rem', fontFamily: 'var(--font-mono)' }}>{s.label}</span>
+                                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => generateQuotePDF(quote, selectedClient)}>📄</button>
+                                                <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => { setEditQuote(quote); setShowQuoteBuilder(true); }}>✏️</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             )}
