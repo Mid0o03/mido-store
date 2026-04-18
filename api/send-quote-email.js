@@ -4,11 +4,12 @@
  * Expects: { clientEmail, clientName, quoteNumber, total, depositAmount, validUntil, notes }
  */
 import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
 
 const BRAND_COLOR = '#39ff14';
 const PORTAL_URL = 'https://www.midodev.fr/client';
 
-const emailTemplate = ({ clientName, quoteNumber, total, depositAmount, validUntil, notes }) => `
+const emailTemplate = ({ clientName, quoteNumber, total, depositAmount, validUntil, notes, portalLink }) => `
 <!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Votre Devis Mido Dev</title></head>
@@ -59,10 +60,12 @@ const emailTemplate = ({ clientName, quoteNumber, total, depositAmount, validUnt
 
       <!-- CTA Button -->
       <div style="text-align:center;margin:32px 0;">
-        <a href="${PORTAL_URL}" style="background:${BRAND_COLOR};color:#000;font-weight:900;font-size:15px;text-decoration:none;padding:16px 36px;border-radius:8px;display:inline-block;letter-spacing:0.5px;">
-          ✓ Accepter & Payer l'acompte →
+        <a href="${portalLink || PORTAL_URL}" style="background:${BRAND_COLOR};color:#000;font-weight:900;font-size:15px;text-decoration:none;padding:16px 36px;border-radius:8px;display:inline-block;letter-spacing:0.5px;">
+          ✓ Accepter &amp; Payer l'acompte →
         </a>
-        <p style="color:#555;font-size:12px;margin:14px 0 0;">Connectez-vous sur <a href="${PORTAL_URL}" style="color:${BRAND_COLOR};">midodev.fr/client</a></p>
+        <p style="color:#555;font-size:12px;margin:14px 0 0;">
+          ${portalLink ? 'Cliquez pour accéder directement sans créer de compte · Lien valable 24h' : `Connectez-vous sur <a href="${PORTAL_URL}" style="color:${BRAND_COLOR};">midodev.fr/client</a>`}
+        </p>
       </div>
 
       <!-- Legal -->
@@ -97,11 +100,32 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Champs requis manquants (clientEmail, quoteNumber).' });
         }
 
+        // Generate a Supabase magic link so client can access portal without creating an account
+        let portalLink = PORTAL_URL;
+        if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            try {
+                const supabaseAdmin = createClient(
+                    process.env.SUPABASE_URL,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY
+                );
+                const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                    type: 'magiclink',
+                    email: clientEmail,
+                    options: { redirectTo: PORTAL_URL },
+                });
+                if (linkData?.properties?.action_link) {
+                    portalLink = linkData.properties.action_link;
+                }
+            } catch (e) {
+                console.warn('[send-quote-email] Magic link generation failed, using portal URL fallback:', e.message);
+            }
+        }
+
         const emailPayload = {
             from: 'Mido Dev <contact@midodev.fr>',
             to: [clientEmail],
             subject: `Votre devis ${quoteNumber} — Mido Dev`,
-            html: emailTemplate({ clientName: clientName || 'Client', quoteNumber, total, depositAmount, validUntil, notes }),
+            html: emailTemplate({ clientName: clientName || 'Client', quoteNumber, total, depositAmount, validUntil, notes, portalLink }),
         };
 
         if (pdfBase64) {
