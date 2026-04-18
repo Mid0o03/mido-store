@@ -150,6 +150,13 @@ export const FreelanceProvider = ({ children }) => {
         return { success: true };
     };
 
+    const deleteQuote = async (id) => {
+        const { error } = await supabase.from('quotes').delete().eq('id', id);
+        if (error) return { success: false, message: error.message };
+        setQuotes(prev => prev.filter(q => q.id !== id));
+        return { success: true };
+    };
+
     // =============================================
     // INVOICES
     // =============================================
@@ -333,7 +340,7 @@ export const FreelanceProvider = ({ children }) => {
             // Project CRUD
             addFreelanceProject, updateFreelanceProject, fetchFreelanceProjects,
             // Quote CRUD
-            addQuote, updateQuote,
+            addQuote, updateQuote, deleteQuote,
             // Invoice
             addInvoice, markInvoicePaid,
             // Expense

@@ -15,7 +15,7 @@ const STATUS_STYLES = {
 };
 
 const AdminCRM = () => {
-    const { clients, quotes, freelanceProjects, addClient, updateClient, deleteClient, addFreelanceProject, updateFreelanceProject, clientDocuments, addClientDocument, deleteClientDocument, downloadClientDocument } = useFreelance();
+    const { clients, quotes, freelanceProjects, addClient, updateClient, deleteClient, addFreelanceProject, updateFreelanceProject, clientDocuments, addClientDocument, deleteClientDocument, downloadClientDocument, deleteQuote } = useFreelance();
     const [activeTab, setActiveTab] = useState('clients');
     const [showQuoteBuilder, setShowQuoteBuilder] = useState(false);
     const [editQuote, setEditQuote] = useState(null);
@@ -283,6 +283,14 @@ const AdminCRM = () => {
                                                 )}
                                                 <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => generateQuotePDF(quote, selectedClient)}>📄</button>
                                                 <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => { setEditQuote(quote); setShowQuoteBuilder(true); }}>✏️</button>
+                                                <button
+                                                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'rgba(255,60,60,0.15)', border: '1px solid rgba(255,60,60,0.3)', color: '#ff6060', borderRadius: '6px', cursor: 'pointer' }}
+                                                    onClick={async () => {
+                                                        if (!window.confirm(`Supprimer le devis ${quote.quote_number} ? Cette action est irréversible.`)) return;
+                                                        const r = await deleteQuote(quote.id);
+                                                        if (!r.success) alert('Erreur: ' + r.message);
+                                                    }}
+                                                >🗑️</button>
                                             </div>
                                         </div>
                                     );
