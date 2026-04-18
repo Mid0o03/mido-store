@@ -19,6 +19,8 @@ export const FreelanceProvider = ({ children }) => {
     const [expenses, setExpenses] = useState([]);
     // Unread messages count
     const [unreadCount, setUnreadCount] = useState(0);
+    // Vault Documents
+    const [clientDocuments, setClientDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Only fetch admin data if admin
@@ -31,6 +33,7 @@ export const FreelanceProvider = ({ children }) => {
                 fetchFreelanceProjects(),
                 fetchExpenses(),
                 fetchUnreadCount(),
+                fetchClientDocuments(),
             ]).finally(() => setLoading(false));
         } else {
             setLoading(false);
@@ -272,10 +275,59 @@ export const FreelanceProvider = ({ children }) => {
         };
     };
 
+    // =============================================
+    // VAULT (CLIENT DOCUMENTS)
+    // =============================================
+    const fetchClientDocuments = async () => {
+        const { data, error } = await supabase
+            .from('client_documents')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (!error) setClientDocuments(data || []);
+    };
+
+    const addClientDocument = async (docData, file = null) => {
+        let file_url = docData.file_url;
+        
+        if (file) {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${docData.client_id}/${Date.now()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from('vault').upload(filePath, file);
+            if (uploadError) return { success: false, message: uploadError.message };
+            file_url = filePath;
+        }
+
+        const { data, error } = await supabase
+            .from('client_documents')
+            .insert([{ ...docData, file_url }])
+            .select();
+        if (error) return { success: false, message: error.message };
+        setClientDocuments(prev => [data[0], ...prev]);
+        return { success: true, data: data[0] };
+    };
+
+    const downloadClientDocument = async (filePath) => {
+        const { data, error } = await supabase.storage.from('vault').download(filePath);
+        if (error) return null;
+        return URL.createObjectURL(data);
+    };
+
+    const deleteClientDocument = async (id, filePath) => {
+        // First delete from storage if there's a file
+        if (filePath) {
+            await supabase.storage.from('vault').remove([filePath]);
+        }
+        // Then delete from DB
+        const { error } = await supabase.from('client_documents').delete().eq('id', id);
+        if (error) return { success: false, message: error.message };
+        setClientDocuments(prev => prev.filter(d => d.id !== id));
+        return { success: true };
+    };
+
     return (
         <FreelanceContext.Provider value={{
             // Data
-            clients, quotes, invoices, freelanceProjects, expenses, unreadCount, loading,
+            clients, quotes, invoices, freelanceProjects, expenses, unreadCount, clientDocuments, loading,
             // Client CRUD
             addClient, updateClient, deleteClient, fetchClients,
             // Project CRUD
@@ -290,6 +342,8 @@ export const FreelanceProvider = ({ children }) => {
             markMessagesRead, fetchUnreadCount,
             // Financials
             computeFinancials,
+            // Vault
+            fetchClientDocuments, addClientDocument, deleteClientDocument, downloadClientDocument,
         }}>
             {children}
         </FreelanceContext.Provider>

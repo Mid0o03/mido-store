@@ -14,7 +14,7 @@ const STATUS_STYLES = {
 };
 
 const AdminCRM = () => {
-    const { clients, quotes, freelanceProjects, addClient, updateClient, deleteClient, addFreelanceProject, updateFreelanceProject } = useFreelance();
+    const { clients, quotes, freelanceProjects, addClient, updateClient, deleteClient, addFreelanceProject, updateFreelanceProject, clientDocuments, addClientDocument, deleteClientDocument, downloadClientDocument } = useFreelance();
     const [activeTab, setActiveTab] = useState('clients');
     const [showQuoteBuilder, setShowQuoteBuilder] = useState(false);
     const [editQuote, setEditQuote] = useState(null);
@@ -27,6 +27,7 @@ const AdminCRM = () => {
     const [projectForm, setProjectForm] = useState({ client_id: '', title: '', description: '', status: 'discovery', total_amount: '', deadline: '', preview_url: '' });
     const [viewingProjectUrl, setViewingProjectUrl] = useState(null);
     const [activeProjectChat, setActiveProjectChat] = useState(null); // Which project chat is open
+    const [uploadingDoc, setUploadingDoc] = useState(false);
 
     // ── CLIENT FORM ───────────────────────────────────────
     const openClientForm = (client = null) => {
@@ -177,7 +178,7 @@ const AdminCRM = () => {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
                         
                         {/* PROJECTS COLUMN */}
                         <div>
@@ -258,6 +259,48 @@ const AdminCRM = () => {
                                         </div>
                                     );
                                 })}
+                            </div>
+                        </div>
+
+                        {/* VAULT COLUMN */}
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ fontSize: '0.85rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>VAULT</h3>
+                                <label className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', cursor: uploadingDoc ? 'wait' : 'pointer' }}>
+                                    {uploadingDoc ? '⏳' : '+ Doc'}
+                                    <input type="file" style={{ display: 'none' }} disabled={uploadingDoc} onChange={async (e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        setUploadingDoc(true);
+                                        await addClientDocument({
+                                            client_id: selectedClient.id,
+                                            title: file.name,
+                                            type: 'other'
+                                        }, file);
+                                        setUploadingDoc(false);
+                                    }} />
+                                </label>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {clientDocuments.filter(d => d.client_id === selectedClient.id).length === 0 ? (
+                                    <p className="admin-empty" style={{ fontSize: '0.8rem', padding: '1.5rem' }}>Coffre vide.</p>
+                                ) : clientDocuments.filter(d => d.client_id === selectedClient.id).map(doc => (
+                                    <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.title}</p>
+                                            <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.2rem' }}>{doc.type.toUpperCase()}</p>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                            <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={async () => {
+                                                const url = await downloadClientDocument(doc.file_url);
+                                                if (url) window.open(url, '_blank');
+                                            }}>👁</button>
+                                            <button className="btn-danger" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => {
+                                                if(window.confirm('Supprimer ce document ?')) deleteClientDocument(doc.id, doc.file_url);
+                                            }}>✕</button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
