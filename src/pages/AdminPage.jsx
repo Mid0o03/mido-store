@@ -677,7 +677,7 @@ const AdminPage = () => {
                         </div>
                     </form>
                 </div>
-            ) : (
+            ) : activeSection === 'gallery' ? (
                 <div className="glass-panel admin-panel">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-accent mb-0">{editModeGallery ? `EDIT PROJECT` : `ADD NEW PROJECT`}</h3>
@@ -782,9 +782,10 @@ const AdminPage = () => {
                         </div>
                     </form>
                 </div>
-            )}
+            ) : null}
 
-            {/* Search & Filter Bar */}
+            {/* Search & Filter Bar - Only for Store and Gallery */}
+            {(activeSection === 'store' || activeSection === 'gallery') && (
             <div className="glass-panel p-4 mb-6 sticky top-20 z-10 backdrop-blur-md border border-white/10 rounded-xl">
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                     <h3 className="mb-0 whitespace-nowrap">Products ({filteredTemplates.length})</h3>
@@ -821,6 +822,7 @@ const AdminPage = () => {
                     </div>
                 </div>
             </div>
+            )}
 
             <div className="store-grid">
                 {activeSection === 'store' ? (
@@ -890,7 +892,7 @@ const AdminPage = () => {
                             </button>
                         </div>
                     )
-                ) : (
+                ) : activeSection === 'gallery' ? (
                     projects && projects.length > 0 ? (
                         projects.map(p => (
                             <div key={p.id} className="store-card glass-panel cursor-default">
@@ -940,7 +942,7 @@ const AdminPage = () => {
                             <p className="text-xl text-secondary">No projects in gallery yet.</p>
                         </div>
                     )
-                )}
+                ) : null}
             </div>
 
             {/* ── HOME / COMMAND CENTER ─────────────────────── */}
