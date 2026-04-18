@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ChatPanel from '../components/ChatPanel';
 import DepositPayment from '../components/DepositPayment';
-import { generateInvoicePDF } from '../services/pdfService';
+import { generateInvoicePDF, generateQuotePDF } from '../services/pdfService';
 import ProjectViewer from '../components/ProjectViewer';
 import '../components/ChatViewer.css';
 import './PageStyles.css';
@@ -579,15 +579,25 @@ const ClientDashboard = () => {
                                                         <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-color)', fontWeight: 700 }}>{parseFloat(quote.total || 0).toFixed(0)} €</p>
                                                         <p style={{ fontSize: '0.7rem', color: s.color, fontFamily: 'var(--font-mono)' }}>{s.label}</p>
                                                     </div>
-                                                    {canAccept && (
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                         <button
-                                                            onClick={() => setSelectedQuote(quote)}
-                                                            className="cta-primary"
-                                                            style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'var(--accent-color)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
+                                                            onClick={() => generateQuotePDF(quote, clientProfile)}
+                                                            className="btn-secondary"
+                                                            style={{ padding: '0.5rem', fontSize: '0.9rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}
+                                                            title="Voir / Télécharger PDF"
                                                         >
-                                                            ✓ Accepter
+                                                            📄 PDF
                                                         </button>
-                                                    )}
+                                                        {canAccept && (
+                                                            <button
+                                                                onClick={() => setSelectedQuote(quote)}
+                                                                className="cta-primary"
+                                                                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'var(--accent-color)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
+                                                            >
+                                                                ✓ Accepter
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
