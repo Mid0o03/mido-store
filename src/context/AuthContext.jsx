@@ -94,8 +94,16 @@ export const AuthProvider = ({ children }) => {
         if (error) throw error;
     };
 
+    const sendMagicLink = async (email) => {
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: window.location.origin + '/client' },
+        });
+        if (error) throw error;
+    };
+
     return (
-        <AuthContext.Provider value={{ session, isAdmin, login, logout, clientUser, loginClient, signUpClient, resetPassword, loading }}>
+        <AuthContext.Provider value={{ session, isAdmin, login, logout, clientUser, loginClient, signUpClient, resetPassword, sendMagicLink, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );
