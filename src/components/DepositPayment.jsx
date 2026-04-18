@@ -107,6 +107,15 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
     const depositAmount = parseFloat(quote.deposit_amount || 0).toFixed(2);
 
     const handleAccept = async () => {
+        // Guard: ensure quote has valid IDs before any DB call
+        if (!quote?.id || quote.id === 'undefined') {
+            setIntentError("Erreur: ce devis est invalide (ID manquant). Veuillez contacter votre prestataire.");
+            return;
+        }
+        if (!quote?.client_id || quote.client_id === 'undefined') {
+            setIntentError("Erreur: client non associé à ce devis. Veuillez contacter votre prestataire.");
+            return;
+        }
         setLoadingIntent(true);
         setIntentError('');
 
