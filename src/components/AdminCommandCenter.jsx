@@ -167,8 +167,8 @@ const AdminCommandCenter = ({ onNavigate }) => {
         ...quotes.filter(q => q.status === 'accepted').slice(0, 3).map(q => ({
             icon: '✅', color: '#39ff14',
             text: `Devis accepté — ${q.quote_number} (${q.clients?.name})`,
-            time: relTime(q.accepted_at || q.updated_at),
-            ts: q.accepted_at || q.updated_at,
+            time: relTime(q.signed_at || q.updated_at),
+            ts: q.signed_at || q.updated_at,
             onClick: () => onNavigate('crm'),
         })),
         ...invoices.filter(i => i.status === 'paid').slice(0, 3).map(i => ({

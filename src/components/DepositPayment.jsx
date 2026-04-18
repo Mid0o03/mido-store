@@ -35,7 +35,7 @@ const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
             // Update quote status in Supabase
             const { error: qErr } = await supabase
                 .from('quotes')
-                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                .update({ status: 'accepted', signed_at: new Date().toISOString() })
                 .eq('id', quote.id);
                 
             if (qErr) {
@@ -115,7 +115,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                 // Update quote status
                 const { error: quoteErr } = await supabase
                     .from('quotes')
-                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                    .update({ status: 'accepted', signed_at: new Date().toISOString() })
                     .eq('id', quote.id);
                     
                 if (quoteErr) throw new Error("Quote update error: " + quoteErr.message);
