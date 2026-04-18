@@ -63,6 +63,23 @@ const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
                  console.error("Invoice insert failed after success:", iErr.message);
             }
 
+            // Send confirmation email to client
+            if (quote.clients?.email) {
+                try {
+                    await fetch('/api/send-automation-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: quote.clients.email,
+                            type: 'deposit_paid',
+                            data: { quote_id: quote.id, quote_number: quote.quote_number }
+                        })
+                    });
+                } catch (e) {
+                    console.error('Email send error:', e);
+                }
+            }
+
             setProcessing(false);
             onSuccess();
         }

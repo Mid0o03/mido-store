@@ -111,10 +111,10 @@ const ClientDashboard = () => {
 
                 setInvoices(invData || []);
 
-                // 6. Quotes
+                // 6. Quotes (with clients join for email in DepositPayment)
                 const { data: quoteData } = await supabase
                     .from('quotes')
-                    .select('*')
+                    .select('*, clients(name, email)')
                     .eq('client_id', clientData.id)
                     .order('created_at', { ascending: false });
 
