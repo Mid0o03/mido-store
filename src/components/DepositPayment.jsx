@@ -98,6 +98,38 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
         setLoadingIntent(true);
         setIntentError('');
 
+        // BYPASS STRIPE FOR 0€ QUOTES
+        if (parseFloat(depositAmount) <= 0) {
+            try {
+                // Update quote status
+                await supabase
+                    .from('quotes')
+                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                    .eq('id', quote.id);
+
+                // Create a 0€ deposit invoice marking it as paid
+                const { data: numData } = await supabase.rpc('generate_invoice_number');
+                await supabase.from('invoices').insert([{
+                    quote_id: quote.id,
+                    client_id: quote.client_id,
+                    invoice_number: numData || `FACT-${Date.now()}`,
+                    type: 'deposit',
+                    status: 'paid',
+                    total: 0,
+                    subtotal: 0,
+                    paid_at: new Date().toISOString(),
+                    stripe_payment_intent: 'bypass_0_euros',
+                }]);
+
+                handleSuccess();
+            } catch (err) {
+                setIntentError("Erreur lors de l'acceptation: " + err.message);
+            } finally {
+                setLoadingIntent(false);
+            }
+            return;
+        }
+
         try {
             const res = await fetch('/api/create-deposit-intent', {
                 method: 'POST',
@@ -186,7 +218,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
 
                         {/* Terms */}
                         <div style={{ background: 'rgba(57,255,20,0.05)', border: '1px solid rgba(57,255,20,0.1)', borderRadius: '10px', padding: '1rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                            En cliquant "J'accepte et je paye", je reconnais avoir lu le devis {quote.quote_number} et j'accepte les termes de la prestation. Le versement de l'acompte de {depositAmount} € déclenche le démarrage du projet.
+                            En cliquant sur le bouton ci-dessous, je reconnais avoir lu le devis {quote.quote_number} et j'accepte les termes de la prestation. {parseFloat(depositAmount) > 0 ? `Le versement de l'acompte de ${depositAmount} € déclenche le démarrage du projet.` : "Cette acceptation déclenche le démarrage du projet."}
                         </div>
 
                         {intentError && (
@@ -201,7 +233,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                             className="cta-primary"
                             style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem' }}
                         >
-                            {loadingIntent ? '⏳ Initialisation...' : `✓ J'accepte et je paye ${depositAmount} €`}
+                            {loadingIntent ? '⏳ Initialisation...' : (parseFloat(depositAmount) > 0 ? `✓ J'accepte et je paye ${depositAmount} €` : `✓ J'accepte le devis`)}
                         </button>
                         <button onClick={onClose} style={{ width: '100%', marginTop: '0.75rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.85rem', padding: '0.5rem' }}>
                             Annuler
