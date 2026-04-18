@@ -176,7 +176,34 @@ const AdminCRM = () => {
                                     {selectedClient.company && <p style={{ color: 'var(--accent-color)', fontSize: '0.85rem', marginTop: '0.2rem' }}>🏢 {selectedClient.company}</p>}
                                 </div>
                             </div>
-                            <button className="btn-secondary" onClick={() => openClientForm(selectedClient)}>✏️ Éditer Profil</button>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                <button
+                                    className="btn-secondary"
+                                    style={{ fontSize: '0.8rem', padding: '0.5rem 0.9rem', background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}
+                                    onClick={async () => {
+                                        if (!window.confirm(`Envoyer un lien d'accès au portail à ${selectedClient.email} ?`)) return;
+                                        try {
+                                            const r = await fetch('/api/invite-client', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    clientEmail: selectedClient.email,
+                                                    clientName: selectedClient.name,
+                                                    projectTitle: selectedClient.company || '',
+                                                })
+                                            });
+                                            const data = await r.json();
+                                            if (data.success) alert(`✅ Invitation envoyée à ${selectedClient.email} !`);
+                                            else alert('❌ Erreur: ' + (data.message || 'Inconnu'));
+                                        } catch (e) {
+                                            alert('❌ Erreur réseau: ' + e.message);
+                                        }
+                                    }}
+                                >
+                                    ✉️ Inviter le client
+                                </button>
+                                <button className="btn-secondary" onClick={() => openClientForm(selectedClient)}>✏️ Éditer Profil</button>
+                            </div>
                         </div>
                     </div>
 
