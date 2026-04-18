@@ -138,6 +138,23 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
 
                 if (invErr) throw new Error("Invoice insert error: " + invErr.message);
 
+                // Trigger automation email for 0€ bypass
+                if (quote.clients?.email) {
+                    try {
+                        await fetch('/api/send-automation-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                to: quote.clients.email,
+                                type: 'deposit_paid',
+                                data: { quote_id: quote.id, quote_number: quote.quote_number }
+                            })
+                        });
+                    } catch (e) {
+                        console.error("Bypass email send error:", e);
+                    }
+                }
+
                 handleSuccess();
             } catch (err) {
                 setIntentError("Erreur lors de l'acceptation: " + err.message);
