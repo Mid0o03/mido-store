@@ -11,6 +11,7 @@ const ChatPanel = ({ projectId, projectTitle, clientEmail }) => {
     const [sending, setSending] = useState(false);
     const [isOnline, setIsOnline] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [notifyClient, setNotifyClient] = useState(true); // Default to true so admins don't forget to notify
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -96,7 +97,22 @@ const ChatPanel = ({ projectId, projectTitle, clientEmail }) => {
         };
 
         const { error } = await supabase.from('messages').insert([msg]);
-        if (!error) setNewMessage('');
+        if (!error) {
+            setNewMessage('');
+            if (notifyClient && clientEmail) {
+                try {
+                    fetch('/api/send-automation-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: clientEmail,
+                            type: 'crm_notification',
+                            data: { message: `Vous avez reçu un nouveau message : "${msg.content}"` }
+                        })
+                    });
+                } catch(e) { console.error('Notification error', e); }
+            }
+        }
         setSending(false);
     };
 
@@ -127,7 +143,20 @@ const ChatPanel = ({ projectId, projectTitle, clientEmail }) => {
                 file_type: fileType,
             };
 
-            await supabase.from('messages').insert([msg]);
+            const { error: insertError } = await supabase.from('messages').insert([msg]);
+            if (!insertError && notifyClient && clientEmail) {
+                try {
+                    fetch('/api/send-automation-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: clientEmail,
+                            type: 'crm_notification',
+                            data: { message: `Un nouveau document a été ajouté à votre projet : ${file.name}` }
+                        })
+                    });
+                } catch(e) { console.error('Notification error', e); }
+            }
         } catch (err) {
             alert('Upload failed: ' + err.message);
         } finally {
@@ -267,6 +296,14 @@ const ChatPanel = ({ projectId, projectTitle, clientEmail }) => {
                     }}
                     disabled={sending}
                 />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', marginRight: '8px' }}>
+                    <input 
+                        type="checkbox" 
+                        checked={notifyClient} 
+                        onChange={(e) => setNotifyClient(e.target.checked)} 
+                    />
+                    ✉️
+                </label>
                 <button
                     type="submit"
                     className="chat-send-btn"
