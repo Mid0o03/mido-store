@@ -19,6 +19,7 @@ const AdminCRM = () => {
     const [activeTab, setActiveTab] = useState('clients');
     const [showQuoteBuilder, setShowQuoteBuilder] = useState(false);
     const [editQuote, setEditQuote] = useState(null);
+    const [newQuoteClientId, setNewQuoteClientId] = useState('');
     const [showClientForm, setShowClientForm] = useState(false);
     const [editClient, setEditClient] = useState(null);
     const [selectedClient, setSelectedClient] = useState(null); // The client whose profile is open
@@ -239,7 +240,7 @@ const AdminCRM = () => {
                         <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                 <h3 style={{ fontSize: '0.85rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>DEVIS</h3>
-                                <button className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => { setEditQuote({ client_id: selectedClient.id }); setShowQuoteBuilder(true); }}>+ Devis</button>
+                                <button className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => { setNewQuoteClientId(selectedClient.id); setEditQuote(null); setShowQuoteBuilder(true); }}>+ Devis</button>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {quotes.filter(q => q.client_id === selectedClient.id).length === 0 ? (
@@ -400,7 +401,8 @@ const AdminCRM = () => {
                 <QuoteBuilder
                     clients={clients}
                     editQuote={editQuote}
-                    onClose={() => { setShowQuoteBuilder(false); setEditQuote(null); }}
+                    defaultClientId={newQuoteClientId}
+                    onClose={() => { setShowQuoteBuilder(false); setEditQuote(null); setNewQuoteClientId(''); }}
                 />
             )}
             {/* ── PROJECT VIEWER ───────────────────────────── */}

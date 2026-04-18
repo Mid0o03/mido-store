@@ -5,11 +5,11 @@ import Portal from './Portal';
 
 const EMPTY_LINE_ITEM = { description: '', quantity: 1, unit_price: 0 };
 
-const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
+const QuoteBuilder = ({ clients, onClose, editQuote = null, defaultClientId = '' }) => {
     const { addQuote, updateQuote } = useFreelance();
 
     const [form, setForm] = useState({
-        client_id: editQuote?.client_id || '',
+        client_id: editQuote?.client_id || defaultClientId || '',
         line_items: editQuote?.line_items || [{ ...EMPTY_LINE_ITEM }],
         valid_until: editQuote?.valid_until || '',
         notes: editQuote?.notes || '',
