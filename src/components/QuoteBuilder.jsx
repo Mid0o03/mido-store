@@ -103,7 +103,7 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div
                 className="modal-content glass-panel quote-builder"
-                style={{ maxWidth: '780px', maxHeight: '92vh', overflowY: 'auto' }}
+                style={{ maxWidth: '780px' }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
