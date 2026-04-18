@@ -4,6 +4,7 @@ import { generateQuotePDF } from '../services/pdfService';
 import QuoteBuilder from './QuoteBuilder';
 import ProjectViewer from './ProjectViewer';
 import ChatPanel from './ChatPanel';
+import Portal from './Portal';
 
 const STATUS_STYLES = {
     draft:    { label: 'Brouillon',  color: '#888',    bg: 'rgba(128,128,128,0.1)' },
@@ -336,6 +337,7 @@ const AdminCRM = () => {
 
             {/* ── CLIENT FORM MODAL ────────────────────────── */}
             {showClientForm && (
+            <Portal>
                 <div className="modal-overlay" onClick={() => setShowClientForm(false)}>
                     <div className="modal-content admin-panel" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -360,10 +362,12 @@ const AdminCRM = () => {
                         </form>
                     </div>
                 </div>
+            </Portal>
             )}
 
             {/* ── PROJECT FORM MODAL ───────────────────────── */}
             {showProjectForm && (
+            <Portal>
                 <div className="modal-overlay" onClick={() => setShowProjectForm(false)}>
                     <div className="modal-content admin-panel" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -388,6 +392,7 @@ const AdminCRM = () => {
                         </form>
                     </div>
                 </div>
+            </Portal>
             )}
 
             {/* ── QUOTE BUILDER ────────────────────────────── */}

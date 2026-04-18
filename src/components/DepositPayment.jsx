@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../stripe';
 import { supabase } from '../supabase';
+import Portal from './Portal';
 
 // ─── Inner payment form (needs to be inside <Elements>) ─────
 const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
@@ -209,6 +210,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
     };
 
     return (
+        <Portal>
         <div className="modal-overlay" onClick={onClose}>
             <div
                 className="modal-content glass-panel"
@@ -303,6 +305,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                 )}
             </div>
         </div>
+        </Portal>
     );
 };
 

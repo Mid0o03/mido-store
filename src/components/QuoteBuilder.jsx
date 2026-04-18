@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFreelance } from '../context/FreelanceContext';
 import { generateQuotePDF } from '../services/pdfService';
+import Portal from './Portal';
 
 const EMPTY_LINE_ITEM = { description: '', quantity: 1, unit_price: 0 };
 
@@ -100,6 +101,7 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
     };
 
     return (
+        <Portal>
         <div className="modal-overlay" onClick={onClose}>
             <div
                 className="modal-content glass-panel quote-builder"
@@ -317,6 +319,7 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
                 </div>
             </div>
         </div>
+        </Portal>
     );
 };
 
