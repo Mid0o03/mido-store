@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useFreelance } from '../context/FreelanceContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
+import { generateQuotePDF } from '../services/pdfService';
 
 // ─── Mini stat card ─────────────────────────────────────────
 const KpiCard = ({ label, value, icon, color = 'var(--accent-color)', onClick, pulse }) => (
@@ -77,6 +78,13 @@ const exportUrssaf = async (year, quarter = null) => {
 
 // ─── Send quote email helper ─────────────────────────────────
 const sendQuoteEmail = async (quote, client) => {
+    let pdfBase64 = null;
+    try {
+        pdfBase64 = generateQuotePDF(quote, client, { returnBase64: true });
+    } catch (err) {
+        console.error("Error generating base64 PDF:", err);
+    }
+
     const res = await fetch('/api/send-quote-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,6 +96,7 @@ const sendQuoteEmail = async (quote, client) => {
             depositAmount: parseFloat(quote.deposit_amount).toFixed(2),
             validUntil: quote.valid_until ? new Date(quote.valid_until).toLocaleDateString('fr-FR') : null,
             notes: quote.notes,
+            pdfBase64 
         }),
     });
     return res.ok;

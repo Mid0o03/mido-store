@@ -91,18 +91,29 @@ export default async function handler(req, res) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     try {
-        const { clientEmail, clientName, quoteNumber, total, depositAmount, validUntil, notes } = req.body;
+        const { clientEmail, clientName, quoteNumber, total, depositAmount, validUntil, notes, pdfBase64 } = req.body;
 
         if (!clientEmail || !quoteNumber) {
             return res.status(400).json({ message: 'Champs requis manquants (clientEmail, quoteNumber).' });
         }
 
-        const data = await resend.emails.send({
+        const emailPayload = {
             from: 'Mido Dev <contact@midodev.fr>',
             to: [clientEmail],
             subject: `Votre devis ${quoteNumber} — Mido Dev`,
             html: emailTemplate({ clientName: clientName || 'Client', quoteNumber, total, depositAmount, validUntil, notes }),
-        });
+        };
+
+        if (pdfBase64) {
+            emailPayload.attachments = [
+                {
+                    filename: `Devis_${quoteNumber}.pdf`,
+                    content: pdfBase64,
+                }
+            ];
+        }
+
+        const data = await resend.emails.send(emailPayload);
 
         if (data.error) {
             return res.status(400).json({ message: 'Email non envoyé', error: data.error });

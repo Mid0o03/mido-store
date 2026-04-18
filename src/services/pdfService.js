@@ -47,7 +47,7 @@ const formatDate = (dateStr) => {
  * @param {object} quote - Quote data from Supabase
  * @param {object} client - Client data
  */
-export const generateQuotePDF = (quote, client) => {
+export const generateQuotePDF = (quote, client, options = { returnBase64: false }) => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = 210;
     const pageH = 297;
@@ -264,6 +264,9 @@ export const generateQuotePDF = (quote, client) => {
     doc.text(BRAND.legal_mention, pageW / 2, pageH - 10, { align: 'center' });
 
     // ─── SAVE ─────────────────────────────────────────────────
+    if (options.returnBase64) {
+        return doc.output('datauristring').split(',')[1];
+    }
     doc.save(`${quote.quote_number}.pdf`);
 };
 
