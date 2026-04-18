@@ -847,7 +847,6 @@ const ChatPanelClient = ({ projectId, projectTitle, clientEmail }) => {
                     {sending ? '...' : '➤'}
                 </button>
             </form>
-            </form>
         </div>
     );
 };
