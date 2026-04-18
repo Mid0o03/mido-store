@@ -9,7 +9,7 @@ import { stripePromise } from '../stripe';
 import { supabase } from '../supabase';
 
 // ─── Inner payment form (needs to be inside <Elements>) ─────
-const DepositForm = ({ amount, quoteId, quoteNumber, onSuccess, onCancel }) => {
+const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [processing, setProcessing] = useState(false);
@@ -33,15 +33,22 @@ const DepositForm = ({ amount, quoteId, quoteNumber, onSuccess, onCancel }) => {
             setProcessing(false);
         } else if (paymentIntent?.status === 'succeeded') {
             // Update quote status in Supabase
-            await supabase
+            const { error: qErr } = await supabase
                 .from('quotes')
                 .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-                .eq('id', quoteId);
+                .eq('id', quote.id);
+                
+            if (qErr) {
+                setError("Payment succeeded but quote update failed: " + qErr.message);
+                setProcessing(false);
+                return;
+            }
 
             // Create the deposit invoice
             const { data: numData } = await supabase.rpc('generate_invoice_number');
-            await supabase.from('invoices').insert([{
-                quote_id: quoteId,
+            const { error: iErr } = await supabase.from('invoices').insert([{
+                quote_id: quote.id,
+                client_id: quote.client_id,
                 invoice_number: numData || `FACT-${Date.now()}`,
                 type: 'deposit',
                 status: 'paid',
@@ -50,6 +57,10 @@ const DepositForm = ({ amount, quoteId, quoteNumber, onSuccess, onCancel }) => {
                 paid_at: new Date().toISOString(),
                 stripe_payment_intent: paymentIntent.id,
             }]);
+            
+            if (iErr) {
+                 console.error("Invoice insert failed after success:", iErr.message);
+            }
 
             setProcessing(false);
             onSuccess();
@@ -102,14 +113,18 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
         if (parseFloat(depositAmount) <= 0) {
             try {
                 // Update quote status
-                await supabase
+                const { error: quoteErr } = await supabase
                     .from('quotes')
                     .update({ status: 'accepted', accepted_at: new Date().toISOString() })
                     .eq('id', quote.id);
+                    
+                if (quoteErr) throw new Error("Quote update error: " + quoteErr.message);
 
                 // Create a 0€ deposit invoice marking it as paid
-                const { data: numData } = await supabase.rpc('generate_invoice_number');
-                await supabase.from('invoices').insert([{
+                const { data: numData, error: rpcErr } = await supabase.rpc('generate_invoice_number');
+                if (rpcErr) throw new Error("RPC error: " + rpcErr.message);
+
+                const { error: invErr } = await supabase.from('invoices').insert([{
                     quote_id: quote.id,
                     client_id: quote.client_id,
                     invoice_number: numData || `FACT-${Date.now()}`,
@@ -120,6 +135,8 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                     paid_at: new Date().toISOString(),
                     stripe_payment_intent: 'bypass_0_euros',
                 }]);
+
+                if (invErr) throw new Error("Invoice insert error: " + invErr.message);
 
                 handleSuccess();
             } catch (err) {
@@ -253,8 +270,7 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                         <Elements options={stripeOptions} stripe={stripePromise}>
                             <DepositForm
                                 amount={depositAmount}
-                                quoteId={quote.id}
-                                quoteNumber={quote.quote_number}
+                                quote={quote}
                                 onSuccess={handleSuccess}
                                 onCancel={() => setStep('confirm')}
                             />
