@@ -394,9 +394,9 @@
     -webkit-backdrop-filter: blur(8px);
     z-index: 1000;
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* Ensure top alignment */
     justify-content: center;
-    padding: 2.5rem 1rem;
+    padding: 3rem 1rem;
     overflow-y: auto;
     animation: fadeIn 0.3s ease-out;
 }
@@ -407,7 +407,7 @@
     border-radius: 24px;
     width: 100%;
     max-width: 900px;
-    margin: auto;
+    margin: 0 auto; /* Horizontal centering only, no vertical centering to prevent top clip */
     height: auto;
     display: flex;
     flex-direction: column;
