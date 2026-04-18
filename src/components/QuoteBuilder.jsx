@@ -13,6 +13,9 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
         valid_until: editQuote?.valid_until || '',
         notes: editQuote?.notes || '',
         status: editQuote?.status || 'draft',
+        payment_type: editQuote?.payment_type || 'one_off',
+        monthly_fee: editQuote?.monthly_fee || 0,
+        duration_months: editQuote?.duration_months || 0,
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -60,6 +63,9 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
             total: parseFloat(total.toFixed(2)),
             deposit_amount: deposit,
             status: sendStatus || form.status,
+            payment_type: form.payment_type,
+            monthly_fee: parseFloat(form.monthly_fee || 0),
+            duration_months: parseInt(form.duration_months || 0),
         };
 
         let result;
@@ -86,6 +92,9 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
             subtotal,
             total,
             deposit_amount: deposit,
+            payment_type: form.payment_type,
+            monthly_fee: form.monthly_fee,
+            duration_months: form.duration_months,
         };
         generateQuotePDF(mockQuote, client);
     };
@@ -225,6 +234,50 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null }) => {
                         <span style={{ color: 'var(--accent-color)', fontSize: '0.85rem' }}>⬇ Acompte 30%</span>
                         <span style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{deposit.toFixed(2)} €</span>
                     </div>
+                </div>
+
+                {/* Paiement / Abonnement */}
+                <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label className="admin-label">MODE DE FACTURATION</label>
+                        <select
+                            className="admin-input"
+                            value={form.payment_type}
+                            onChange={e => setForm(prev => ({ ...prev, payment_type: e.target.value }))}
+                        >
+                            <option value="one_off">Paiement Comptant (Acompte + Reste à la livraison)</option>
+                            <option value="subscription">Abonnement Mensuel (Acompte + Abonn. post-livraison)</option>
+                        </select>
+                    </div>
+
+                    {form.payment_type === 'subscription' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                            <div>
+                                <label className="admin-label">MENSUALITÉ (€ / MOIS)</label>
+                                <input
+                                    type="number"
+                                    className="admin-input"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="ex: 299.00"
+                                    value={form.monthly_fee}
+                                    onChange={e => setForm(prev => ({ ...prev, monthly_fee: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="admin-label">DURÉE (EN MOIS)</label>
+                                <input
+                                    type="number"
+                                    className="admin-input"
+                                    min="0"
+                                    placeholder="ex: 12 (0 = sans engagement)"
+                                    value={form.duration_months}
+                                    onChange={e => setForm(prev => ({ ...prev, duration_months: e.target.value }))}
+                                />
+                                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.3rem' }}>0 = Renouvellement illimité</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Notes */}

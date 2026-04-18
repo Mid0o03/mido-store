@@ -245,9 +245,16 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
                                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Acompte à payer (30%)</span>
                                 <span style={{ color: 'var(--accent-color)', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '1.1rem' }}>{depositAmount} €</span>
                             </div>
-                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.6rem', fontFamily: 'var(--font-mono)' }}>
-                                Le solde ({(parseFloat(quote.total) - parseFloat(depositAmount)).toFixed(2)} €) sera facturé à la livraison.
-                            </p>
+                            {quote.payment_type === 'subscription' ? (
+                                <p style={{ fontSize: '0.75rem', color: 'var(--accent-color)', marginTop: '0.8rem', fontFamily: 'var(--font-mono)', padding: '0.5rem', background: 'rgba(57,255,20,0.05)', borderRadius: '6px' }}>
+                                    À la livraison, un abonnement automatique de {parseFloat(quote.monthly_fee || 0).toFixed(2)} € / mois sera déclenché {quote.duration_months > 0 ? `pour ${quote.duration_months} mois` : 'sans engagement'}. 💳 
+                                    <br/><span style={{opacity: 0.7, fontSize: '0.65rem'}}>Votre carte web sécurisée sera prélevée automatiquement.</span>
+                                </p>
+                            ) : (
+                                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                                    Le solde ({(parseFloat(quote.total) - parseFloat(depositAmount)).toFixed(2)} €) sera facturé à la livraison.
+                                </p>
+                            )}
                         </div>
 
                         {/* Terms */}

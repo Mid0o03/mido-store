@@ -253,6 +253,32 @@ const AdminCRM = () => {
                                             </div>
                                             <span style={{ padding: '0.2rem 0.6rem', borderRadius: '4px', background: s.bg, color: s.color, fontSize: '0.65rem', fontFamily: 'var(--font-mono)' }}>{s.label}</span>
                                             <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                {quote.status === 'accepted' && quote.payment_type === 'subscription' && (
+                                                    <button 
+                                                        className="cta-primary" 
+                                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} 
+                                                        onClick={async () => {
+                                                            if (!window.confirm("Lancer l'abonnement mensuel pour ce client ?")) return;
+                                                            try {
+                                                                const res = await fetch('/api/start-subscription', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({
+                                                                        clientEmail: selectedClient.email,
+                                                                        monthlyFee: quote.monthly_fee,
+                                                                        quoteId: quote.id
+                                                                    })
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data.success) alert("Abonnement lancé avec succès !");
+                                                                else alert("Erreur: " + data.message);
+                                                            } catch (e) {
+                                                                alert("Erreur système.");
+                                                            }
+                                                        }}>
+                                                        🚀 Abonner ({quote.monthly_fee}€/m)
+                                                    </button>
+                                                )}
                                                 <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => generateQuotePDF(quote, selectedClient)}>📄</button>
                                                 <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => { setEditQuote(quote); setShowQuoteBuilder(true); }}>✏️</button>
                                             </div>

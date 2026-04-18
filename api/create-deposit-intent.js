@@ -26,7 +26,21 @@ export default async function handler(req, res) {
 
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
-        const paymentIntent = await stripe.paymentIntents.create({
+        let customerId;
+        if (clientEmail) {
+            const existingCustomers = await stripe.customers.list({ email: clientEmail, limit: 1 });
+            if (existingCustomers.data.length > 0) {
+                customerId = existingCustomers.data[0].id;
+            } else {
+                const newCustomer = await stripe.customers.create({
+                    email: clientEmail,
+                    metadata: { quote_id: quoteId }
+                });
+                customerId = newCustomer.id;
+            }
+        }
+
+        const intentPayload = {
             amount: amountInCents,
             currency: 'eur',
             automatic_payment_methods: { enabled: true },
@@ -38,7 +52,14 @@ export default async function handler(req, res) {
             },
             description: `Acompte 30% — ${quoteNumber || quoteId}`,
             receipt_email: clientEmail || undefined,
-        });
+        };
+
+        if (customerId) {
+            intentPayload.customer = customerId;
+            intentPayload.setup_future_usage = 'off_session'; // Forces Stripe to securely save card
+        }
+
+        const paymentIntent = await stripe.paymentIntents.create(intentPayload);
 
         return res.status(200).json({ clientSecret: paymentIntent.client_secret });
 
