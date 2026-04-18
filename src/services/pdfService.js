@@ -276,7 +276,7 @@ export const generateQuotePDF = (quote, client, options = { returnBase64: false 
  * @param {object} client - Client data
  * @param {object} project - Project data (optional)
  */
-export const generateInvoicePDF = (invoice, client, project = null) => {
+export const generateInvoicePDF = (invoice, client, project = null, options = { returnBase64: false }) => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = 210;
     const pageH = 297;
@@ -483,5 +483,9 @@ export const generateInvoicePDF = (invoice, client, project = null) => {
     doc.text(`${BRAND.name} — SIRET: ${BRAND.siret} — ${BRAND.email}`, pageW / 2, pageH - 14, { align: 'center' });
     doc.text(BRAND.legal_mention, pageW / 2, pageH - 9, { align: 'center' });
 
+    // ─── SAVE ─────────────────────────────────────────────────
+    if (options.returnBase64) {
+        return doc.output('datauristring').split(',')[1];
+    }
     doc.save(`${invoice.invoice_number}.pdf`);
 };

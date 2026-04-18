@@ -80,6 +80,30 @@ const QuoteBuilder = ({ clients, onClose, editQuote = null, defaultClientId = ''
         if (!result.success) {
             setError(result.message || 'Erreur lors de la sauvegarde');
         } else {
+            // If sending to client, email the quote PDF
+            if (sendStatus === 'sent') {
+                try {
+                    const client = clients.find(c => c.id === form.client_id);
+                    const savedQuote = result.data || { ...payload, quote_number: payload.quote_number };
+                    const pdfBase64 = generateQuotePDF(savedQuote, client, { returnBase64: true });
+                    await fetch('/api/send-quote-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            clientEmail: client?.email,
+                            clientName: client?.name,
+                            quoteNumber: savedQuote.quote_number,
+                            total: parseFloat(total.toFixed(2)),
+                            depositAmount: deposit,
+                            validUntil: form.valid_until,
+                            notes: form.notes,
+                            pdfBase64,
+                        })
+                    });
+                } catch (e) {
+                    console.error('Quote email send error:', e);
+                }
+            }
             onClose?.();
         }
     };

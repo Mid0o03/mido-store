@@ -8,6 +8,29 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { stripePromise } from '../stripe';
 import { supabase } from '../supabase';
 import Portal from './Portal';
+import { generateInvoicePDF } from '../services/pdfService';
+
+// ─── Helper: send invoice email with PDF attached ─────────────────────
+const sendInvoiceEmail = async (quote, invoiceData) => {
+    if (!quote?.clients?.email) return;
+    try {
+        const pdfBase64 = generateInvoicePDF(invoiceData, quote.clients, null, { returnBase64: true });
+        await fetch('/api/send-invoice-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clientEmail: quote.clients.email,
+                clientName: quote.clients.name,
+                invoiceNumber: invoiceData.invoice_number,
+                amount: invoiceData.total,
+                quoteNumber: quote.quote_number,
+                pdfBase64,
+            })
+        });
+    } catch (e) {
+        console.error('Invoice email error:', e);
+    }
+};
 
 // ─── Inner payment form (needs to be inside <Elements>) ─────
 const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
@@ -63,22 +86,16 @@ const DepositForm = ({ amount, quote, onSuccess, onCancel }) => {
                  console.error("Invoice insert failed after success:", iErr.message);
             }
 
-            // Send confirmation email to client
-            if (quote.clients?.email) {
-                try {
-                    await fetch('/api/send-automation-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            to: quote.clients.email,
-                            type: 'deposit_paid',
-                            data: { quote_id: quote.id, quote_number: quote.quote_number }
-                        })
-                    });
-                } catch (e) {
-                    console.error('Email send error:', e);
-                }
-            }
+            // Send invoice email with PDF attached
+            const invoiceData = {
+                invoice_number: numData || `FACT-${Date.now()}`,
+                type: 'deposit',
+                status: 'paid',
+                total: amount,
+                subtotal: amount,
+                paid_at: new Date().toISOString(),
+            };
+            await sendInvoiceEmail(quote, invoiceData);
 
             setProcessing(false);
             onSuccess();
@@ -165,22 +182,16 @@ const DepositPayment = ({ quote, onSuccess, onClose }) => {
 
                 if (invErr) throw new Error("Invoice insert error: " + invErr.message);
 
-                // Trigger automation email for 0€ bypass
-                if (quote.clients?.email) {
-                    try {
-                        await fetch('/api/send-automation-email', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                to: quote.clients.email,
-                                type: 'deposit_paid',
-                                data: { quote_id: quote.id, quote_number: quote.quote_number }
-                            })
-                        });
-                    } catch (e) {
-                        console.error("Bypass email send error:", e);
-                    }
-                }
+                // Send invoice email with PDF attached
+                const invoiceData0 = {
+                    invoice_number: numData || `FACT-${Date.now()}`,
+                    type: 'deposit',
+                    status: 'paid',
+                    total: 0,
+                    subtotal: 0,
+                    paid_at: new Date().toISOString(),
+                };
+                await sendInvoiceEmail(quote, invoiceData0);
 
                 handleSuccess();
             } catch (err) {
