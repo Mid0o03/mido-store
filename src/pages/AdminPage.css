@@ -9,7 +9,7 @@
     min-height: 100vh;
     background: #080810;
     font-family: var(--font-body, 'Inter', sans-serif);
-    padding-top: 64px; /* header offset */
+    padding-top: 0; /* removed legacy header offset */
 }
 
 /* ─── SIDEBAR ─────────────────────────────────────────────── */
@@ -22,7 +22,7 @@
     flex-direction: column;
     padding: 1.5rem 0;
     position: fixed;
-    top: 64px;
+    top: 0;
     left: 0;
     bottom: 0;
     z-index: 100;
@@ -172,7 +172,7 @@
     margin-left: 220px;
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 64px);
+    min-height: 100vh;
 }
 
 .admin-topbar {
@@ -184,7 +184,7 @@
     padding: 0 2rem;
     gap: 1rem;
     position: sticky;
-    top: 64px;
+    top: 0;
     z-index: 50;
     backdrop-filter: blur(12px);
 }
