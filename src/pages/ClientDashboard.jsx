@@ -526,7 +526,7 @@ const ClientDashboard = () => {
                 {activeTab === 'chat' && (
                     <div style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
                         {activeProject ? (
-                            <ChatPanelClient
+                            <ChatPanel
                                 projectId={activeProject.id}
                                 projectTitle={activeProject.title}
                                 clientEmail={clientUser?.email}
