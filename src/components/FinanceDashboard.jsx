@@ -144,8 +144,13 @@ const FinanceDashboard = () => {
                 <StatCard label="CA CE MOIS" value={`${financials.revenueThisMonth.toFixed(0)} €`} sub="Factures encaissées" icon="📈" color="var(--accent-color)" />
                 <StatCard label="CA CETTE ANNÉE" value={`${financials.revenueThisYear.toFixed(0)} €`} sub={`${thisYear}`} icon="💶" color="var(--accent-color)" />
                 <StatCard label="EN ATTENTE" value={`${pendingAmount.toFixed(0)} €`} sub="Factures non encaissées" icon="⏳" color={pendingAmount > 0 ? '#ffcc44' : 'rgba(255,255,255,0.4)'} />
-                <StatCard label="CHARGES SOCIALES EST." value={`${financials.socialChargesEstimate.toFixed(0)} €`} sub={`21.5% AE (services BIC)`} icon="🏛" color="#ff8c44" />
+                <StatCard label="REVENUS RÉCURRENTS (MRR)" value={`${(financials.mrr || 0).toFixed(0)} €`} sub="Abonnements actifs" icon="🔄" color="#b088ff" />
+                <StatCard label="PRÉVISIONNEL RÉCURRENT (1AN)" value={`${((financials.mrr || 0) * 12).toFixed(0)} €`} sub="Projection sur 12 mois" icon="🎯" color="#88d0ff" />
                 <StatCard label="DÉPENSES" value={`${financials.totalExpenses.toFixed(0)} €`} sub={`${thisYear}`} icon="💸" color="rgba(255,100,100,0.9)" />
+            </div>
+
+            <div className="admin-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+                <StatCard label="CHARGES SOCIALES EST." value={`${financials.socialChargesEstimate.toFixed(0)} €`} sub={`21.5% AE (services BIC)`} icon="🏛" color="#ff8c44" />
                 <StatCard label="NET ESTIMÉ" value={`${financials.netEstimate.toFixed(0)} €`} sub="Après charges & dépenses" icon="✅" color={financials.netEstimate > 0 ? 'var(--accent-color)' : '#ff8080'} />
             </div>
 

@@ -273,11 +273,16 @@ export const FreelanceProvider = ({ children }) => {
         const socialChargesRate = 0.215;
         const socialChargesEstimate = revenueThisYear * socialChargesRate;
 
+        const mrr = quotes
+            .filter(q => q.status === 'accepted' && q.payment_type === 'subscription')
+            .reduce((sum, q) => sum + parseFloat(q.monthly_fee || 0), 0);
+
         return {
             revenueThisMonth,
             revenueThisYear,
             totalExpenses,
             socialChargesEstimate,
+            mrr,
             netEstimate: revenueThisYear - totalExpenses - socialChargesEstimate,
         };
     };

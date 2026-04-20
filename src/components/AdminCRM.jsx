@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useFreelance } from '../context/FreelanceContext';
 import { generateQuotePDF } from '../services/pdfService';
 import QuoteBuilder from './QuoteBuilder';
+import DocumentVault from './DocumentVault';
+import KanbanBoard from './KanbanBoard';
 import ProjectViewer from './ProjectViewer';
 import ChatPanel from './ChatPanel';
 import Portal from './Portal';
@@ -79,6 +81,13 @@ const AdminCRM = () => {
                     style={{ fontSize: '0.85rem' }}
                 >
                     👥 Base Clients
+                </button>
+                <button
+                    onClick={() => { setSelectedClient(null); setActiveTab('pipeline'); }}
+                    className={`filter-btn ${activeTab === 'pipeline' ? 'active' : ''}`}
+                    style={{ fontSize: '0.85rem' }}
+                >
+                    🚀 Pipeline Kanban
                 </button>
                 {selectedClient && (
                     <button
@@ -158,6 +167,27 @@ const AdminCRM = () => {
                             );
                         })}
                     </div>
+                </div>
+            )}
+
+            {/* ── PIPELINE (KANBAN) ────────────────────────── */}
+            {activeTab === 'pipeline' && (
+                <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>SUIVI DES PROJETS</h3>
+                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>Glisse un projet pour mettre à jour son statut</p>
+                        </div>
+                        <button className="btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => setShowProjectForm(true)}>
+                            + Nouveau projet
+                        </button>
+                    </div>
+                    
+                    <KanbanBoard 
+                        projects={freelanceProjects.filter(p => p.status !== 'archived')} 
+                        clients={clients}
+                        updateProjectStatus={updateFreelanceProject}
+                    />
                 </div>
             )}
 
@@ -326,45 +356,8 @@ const AdminCRM = () => {
                         </div>
 
                         {/* VAULT COLUMN */}
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h3 style={{ fontSize: '0.85rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>VAULT</h3>
-                                <label className="btn-secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', cursor: uploadingDoc ? 'wait' : 'pointer' }}>
-                                    {uploadingDoc ? '⏳' : '+ Doc'}
-                                    <input type="file" style={{ display: 'none' }} disabled={uploadingDoc} onChange={async (e) => {
-                                        const file = e.target.files[0];
-                                        if (!file) return;
-                                        setUploadingDoc(true);
-                                        await addClientDocument({
-                                            client_id: selectedClient.id,
-                                            title: file.name,
-                                            type: 'other'
-                                        }, file);
-                                        setUploadingDoc(false);
-                                    }} />
-                                </label>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {clientDocuments.filter(d => d.client_id === selectedClient.id).length === 0 ? (
-                                    <p className="admin-empty" style={{ fontSize: '0.8rem', padding: '1.5rem' }}>Coffre vide.</p>
-                                ) : clientDocuments.filter(d => d.client_id === selectedClient.id).map(doc => (
-                                    <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.title}</p>
-                                            <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.2rem' }}>{doc.type.toUpperCase()}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                            <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={async () => {
-                                                const url = await downloadClientDocument(doc.file_url);
-                                                if (url) window.open(url, '_blank');
-                                            }}>👁</button>
-                                            <button className="btn-danger" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => {
-                                                if(window.confirm('Supprimer ce document ?')) deleteClientDocument(doc.id, doc.file_url);
-                                            }}>✕</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="admin-panel" style={{ padding: '0' }}>
+                            <DocumentVault clientId={selectedClient.id} isAdmin={true} />
                         </div>
 
                     </div>

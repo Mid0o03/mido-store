@@ -6,6 +6,7 @@ import ChatPanel from '../components/ChatPanel';
 import DepositPayment from '../components/DepositPayment';
 import { generateInvoicePDF, generateQuotePDF } from '../services/pdfService';
 import ProjectViewer from '../components/ProjectViewer';
+import DocumentVault from '../components/DocumentVault';
 import '../components/ChatViewer.css';
 import './PageStyles.css';
 
@@ -668,34 +669,42 @@ const ClientDashboard = () => {
                     TAB: FILES (legacy store purchases)
                 ════════════════════════════════════════════════ */}
                 {activeTab === 'files' && (
-                    <div>
-                        {myAssets.length === 0 ? (
-                            <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                                <p style={{ fontSize: '2rem', marginBottom: '1rem' }}>📂</p>
-                                <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Aucun fichier disponible</h3>
-                                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Tes achats de templates apparaîtront ici.</p>
-                                <button className="cta-primary" onClick={() => navigate('/store')}>
-                                    Voir le store →
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="store-grid">
-                                {myAssets.map(asset => (
-                                    <div key={asset.id} className="store-card glass-panel" style={{ cursor: 'default' }}>
-                                        <div className="card-preview" style={{ height: '180px' }}>
-                                            <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }} />
-                                        </div>
-                                        <div className="card-content">
-                                            <h3 className="card-title">{asset.title}</h3>
-                                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>Acheté le {asset.date}</p>
-                                            <button className="cta-primary" style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }} onClick={() => handleDownload(asset)}>
-                                                ⬇ Télécharger
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        {clientProfile && (
+                            <div className="admin-panel" style={{ padding: '0' }}>
+                                <DocumentVault clientId={clientProfile.id} isAdmin={false} />
                             </div>
                         )}
+
+                        {/* Legacy Store Purchases */}
+                        <div>
+                            <h3 style={{ fontSize: '0.75rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>🛍️ VOS ACHATS STORE</h3>
+                            {myAssets.length === 0 ? (
+                                <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Aucun achat store pour le moment.</p>
+                                    <button className="cta-primary" onClick={() => navigate('/store')}>
+                                        Voir le store →
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="store-grid">
+                                    {myAssets.map(asset => (
+                                        <div key={asset.id} className="store-card glass-panel" style={{ cursor: 'default' }}>
+                                            <div className="card-preview" style={{ height: '180px' }}>
+                                                <div className="preview-placeholder" style={{ backgroundImage: `url(${asset.image_url})` }} />
+                                            </div>
+                                            <div className="card-content">
+                                                <h3 className="card-title">{asset.title}</h3>
+                                                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>Acheté le {asset.date}</p>
+                                                <button className="cta-primary" style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }} onClick={() => handleDownload(asset)}>
+                                                    ⬇ Télécharger
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

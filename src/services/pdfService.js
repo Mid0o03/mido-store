@@ -235,6 +235,29 @@ export const generateQuotePDF = (quote, client, options = { returnBase64: false 
 
     y += 32;
 
+    // ─── SUBSCRIPTION DETAILS (IF APPLICABLE) ─────────────────
+    if (quote.payment_type === 'subscription') {
+        doc.setFillColor(30, 30, 45);
+        doc.roundedRect(margin, y, pageW - margin * 2, 25, 4, 4, 'F');
+        
+        doc.setTextColor(...BRAND.accent);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('ENGAGEMENT ABONNEMENT MENSUEL', margin + 5, y + 8);
+        
+        doc.setTextColor(200, 200, 220);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.text(`${formatAmount(quote.monthly_fee)} / mois`, margin + 5, y + 16);
+        
+        const durationText = quote.duration_months > 0 
+            ? `Durée de l'engagement : ${quote.duration_months} mois` 
+            : 'Sans engagement (renouvellement mensuel automatique)';
+        doc.text(durationText, pageW - margin - 5, y + 16, { align: 'right' });
+        
+        y += 35;
+    }
+
     // ─── NOTES ────────────────────────────────────────────────
     if (quote.notes) {
         doc.setTextColor(100, 100, 120);
